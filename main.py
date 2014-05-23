@@ -1,7 +1,7 @@
 import tornado.ioloop
 import tornado.web
 import re
-from tornado.httpclient import AsyncHTTPClient, HTTPError
+from tornado.httpclient import AsyncHTTPClient
 from tornado import gen
 from readability.readability import Document
 
@@ -50,7 +50,7 @@ class ImportBookmarksHandler(tornado.web.RequestHandler):
             self.flush()
             try:
                 resp = yield AsyncHTTPClient().fetch(url, connect_timeout=5)
-            except HTTPError:
+            except:
                 self.write('fetch %s error' % url)
                 continue
             title, article = extract(resp.body)
