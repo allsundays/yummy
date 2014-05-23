@@ -4,9 +4,13 @@ import re
 from tornado.httpclient import AsyncHTTPClient
 from tornado import gen
 from readability.readability import Document
+from datetime import datetime
+from elasticsearch import Elasticsearch
+from search import index, search
 
 
 HREF_REGEXP = re.compile(r'href=["\'](.*?)[\'"]', re.IGNORECASE)
+es = Elasticsearch()
 
 
 def extract(text):
@@ -55,13 +59,24 @@ class ImportBookmarksHandler(tornado.web.RequestHandler):
                 continue
             title, article = extract(resp.body)
             self.write('<p>title: %s</p>' % title)
+            index(url, title, article)
             self.flush()
+
+
+class SearchHandler(tornado.web.RequestHandler):
+    def get(self):
+        user = self.get_argument('user', '')
+        query = self.get_argument('query', '')
+        result = search(query, user)
+        for x in result:
+            self.write(x['_source']["title"])
 
 
 application = tornado.web.Application([
     (r"/", MainHandler),
     (r"/extract", ExtractHandler),
     (r'/import', ImportBookmarksHandler),
+    (r"/search", SearchHandler),
 ],
     debug=True,
     autoreload=True,
