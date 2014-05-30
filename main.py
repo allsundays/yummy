@@ -35,12 +35,33 @@ def html_to_text(html):
     return clean_html.handle(html)
 
 
-class MainHandler(tornado.web.RequestHandler):
+class BaseHandler(tornado.web.RequestHandler):
+    def get_current_user(self):
+        return self.get_secure_cookie("user")
+
+
+class LoginHandler(BaseHandler):
     def get(self):
-        self.write('Hello, world!')
+        self.write('<html><body><form action="/login" method="post">'
+                   'Name: <input type="text" name="name">'
+                   '<input type="submit" value="Sign in">'
+                   '</form></body></html>')
+
+    def post(self):
+        self.set_secure_cookie("user", self.get_argument("name"))
+        self.redirect("/")
 
 
-class ExtractHandler(tornado.web.RequestHandler):
+class MainHandler(BaseHandler):
+    def get(self):
+        if not self.current_user:
+            self.redirect("/login")
+            return
+        name = tornado.escape.xhtml_escape(self.current_user)
+        self.write("Hello, " + name)
+
+
+class ExtractHandler(BaseHandler):
     @gen.coroutine
     def get(self):
         url = self.get_argument('url', '')
@@ -60,12 +81,16 @@ class ExtractHandler(tornado.web.RequestHandler):
         )
 
 
-class ImportBookmarksHandler(tornado.web.RequestHandler):
+class ImportBookmarksHandler(BaseHandler):
     def get(self):
+        if not self.current_user:
+            self.redirect("/login")
+            return
         return self.render('templates/import_bookmarks.html')
 
     @gen.coroutine
     def post(self):
+        user = tornado.escape.xhtml_escape(self.current_user)
         bookmark_file = self.request.files.get('bookmark')[0]
         body = bookmark_file.body
         matches = HREF_REGEXP.finditer(body)
@@ -84,27 +109,35 @@ class ImportBookmarksHandler(tornado.web.RequestHandler):
             title = inform['title']
             article = inform['article']
             self.write('<p>title: %s</p>' % inform.get('title'))
-            index(url, title, article)
+            index(url, title, article, user)
 
 
-class SearchHandler(tornado.web.RequestHandler):
+class SearchHandler(BaseHandler):
     def get(self):
-        user = self.get_argument('user', 'tizac')
+        if not self.current_user:
+            self.redirect("/login")
+            return
+        user = tornado.escape.xhtml_escape(self.current_user)
         query = self.get_argument('query', '')
-        result = search(query, user)
-        for x in result:
-            self.write(x['_source']["title"])
-            self.write('<br>')
+        if query:
+            offset = int(self.get_argument('offset', 0))
+            limit = int(self.get_argument("limit", 30))
+            links = search(query, offset, limit, user)
+            self.render("templates/search.html", query=query, links=links, offset=offset, limit=limit)
+        else:
+            self.render("templates/search.html", query="")
 
 
 application = tornado.web.Application([
     (r"/", MainHandler),
     (r"/extract", ExtractHandler),
     (r'/import', ImportBookmarksHandler),
+    (r"/login", LoginHandler),
     (r"/search", SearchHandler),
 ],
     debug=True,
     autoreload=True,
+    cookie_secret="dev@yummy"
 )
 
 
