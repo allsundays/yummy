@@ -71,7 +71,8 @@ class ExtractHandler(BaseHandler):
 
         inform = extract(body)
         if not inform:
-            return self.finish('error')
+            self.finish('error')
+            raise gen.Return()
 
         self.write(
             u'''
