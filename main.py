@@ -153,7 +153,7 @@ class AddBookmarkHandler(BaseHandler):
 
 
 application = tornado.web.Application([
-    (r"/", MainHandler),
+    (r"/", SearchHandler),
     (r"/extract", ExtractHandler),
     (r'/import', ImportBookmarksHandler),
     (r"/login", LoginHandler),
