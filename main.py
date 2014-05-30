@@ -3,6 +3,7 @@ import tornado.ioloop
 import tornado.web
 import html2text
 import logging
+import functools
 from tornado.httpclient import AsyncHTTPClient
 from tornado import gen
 from readability.readability import Document
@@ -52,6 +53,15 @@ def get_and_extract(url, timeout=5):
     raise gen.Return(extract(body))
 
 
+def logined(func):
+    @functools.wraps(func)
+    def wrapper(self, *args, **kw):
+        if not self.current_user:
+            self.redirect("/login")
+        return func(self, *args, **kw)
+    return wrapper
+
+
 class BaseHandler(tornado.web.RequestHandler):
     def get_current_user(self):
         return tornado.escape.xhtml_escape(self.get_secure_cookie("user"))
@@ -70,11 +80,10 @@ class LoginHandler(BaseHandler):
 
 
 class MainHandler(BaseHandler):
+    @logined
     def get(self):
-        if not self.current_user:
-            self.redirect("/login")
-            return
-        self.write("Hello, " + self.current_user)
+        user = self.current_user
+        self.write("Hello, " + user)
 
 
 class ExtractHandler(BaseHandler):
@@ -95,10 +104,8 @@ class ExtractHandler(BaseHandler):
 
 
 class ImportBookmarksHandler(BaseHandler):
+    @logined
     def get(self):
-        if not self.current_user:
-            self.redirect("/login")
-            return
         return self.render('templates/import_bookmarks.html')
 
     @gen.coroutine
@@ -114,17 +121,13 @@ class ImportBookmarksHandler(BaseHandler):
             inform = yield get_and_extract(url)
             if not inform:
                 continue
-            title = inform['title']
-            article = inform['article']
             self.write('<p>title: %s</p>' % inform.get('title'))
-            index(url, title, article, user)
+            index(url, inform['title'], inform['article'], inform['full_text'], user)
 
 
 class SearchHandler(BaseHandler):
+    @logined
     def get(self):
-        if not self.current_user:
-            self.redirect("/login")
-            return
         user = self.current_user
         query = self.get_argument('query', '')
         if query:

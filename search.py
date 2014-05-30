@@ -10,7 +10,7 @@ INDEX = 'testindex'
 DOC_TYPE = 'testtype'
 
 
-def index(id, title, article, user="tizac"):
+def index(id, title, article, full_text, user):
     es.index(
         index=INDEX,
         doc_type=DOC_TYPE,
@@ -19,33 +19,49 @@ def index(id, title, article, user="tizac"):
             "user": user,
             "title": title,
             "article": article,
+            "full_text": full_text,
             "timestamp": datetime.now()
         }
     )
 
 
-def search(query, offset=0, limit=10, user="tizac"):
-    result = es.search(
-        index=INDEX,
-        doc_type=DOC_TYPE,
-        from_=offset,
-        size=limit,
-        body={
+def search(query, offset=0, limit=10, user=None):
+    if user:
+        body = {
+                'query': {
+                    'filtered': {
+                        'query': {
+                            "query_string": {
+                                "query": query
+                            }
+                        },
+                        'filter': {
+                            "term": {
+                                "user": user
+                            }
+                        }
+                    }
+                }
+            }
+    else:
+        body = {
             'query': {
                 'filtered': {
                     'query': {
                         "query_string": {
                             "query": query
                         }
-                    },
-                    'filter': {
-                        "term": {
-                            "user": user
-                        }
                     }
                 }
             }
         }
+
+    result = es.search(
+        index=INDEX,
+        doc_type=DOC_TYPE,
+        from_=offset,
+        size=limit,
+        body=body
     )
     return result['hits']['hits']
 
@@ -60,9 +76,9 @@ def test_index():
 
 
 def test_search():
-    rst = search("桂鱼")
+    rst = search("桂鱼", user=None)
     for x in rst:
-        print x['_score'], x['_source']
+        print x
 
 
 if __name__ == "__main__":
