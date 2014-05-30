@@ -107,10 +107,8 @@ class ImportBookmarksHandler(BaseHandler):
             inform = extract(resp.body)
             if not inform:
                 continue
-            title = inform['title']
-            article = inform['article']
             self.write('<p>title: %s</p>' % inform.get('title'))
-            index(url, title, article, user)
+            index(url, inform['title'], inform['article'], inform['full_text'], user)
 
 
 class SearchHandler(BaseHandler):

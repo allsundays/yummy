@@ -10,7 +10,7 @@ INDEX = 'testindex'
 DOC_TYPE = 'testtype'
 
 
-def index(id, title, article, user="tizac"):
+def index(id, title, article, full_text, user):
     es.index(
         index=INDEX,
         doc_type=DOC_TYPE,
@@ -19,12 +19,13 @@ def index(id, title, article, user="tizac"):
             "user": user,
             "title": title,
             "article": article,
+            "full_text": full_text,
             "timestamp": datetime.now()
         }
     )
 
 
-def search(query, offset=0, limit=10, user="tizac"):
+def search(query, offset=0, limit=10, user=None):
     if user:
         body = {
                 'query': {
