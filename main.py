@@ -65,11 +65,15 @@ class ImportBookmarksHandler(tornado.web.RequestHandler):
 
 class SearchHandler(tornado.web.RequestHandler):
     def get(self):
-        user = self.get_argument('user', '')
         query = self.get_argument('query', '')
-        result = search(query, user)
-        for x in result:
-            self.write(x['_source']["title"])
+        if query:
+            user = self.get_argument('user', '')
+            offset = int(self.get_argument('offset', 0))
+            limit = int(self.get_argument("limit", 30))
+            links = search(query, offset, limit)
+            self.render("templates/search.html", query=query, links=links, offset=offset, limit=limit)
+        else:
+            self.render("templates/search.html", query="")
 
 
 application = tornado.web.Application([

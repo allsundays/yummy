@@ -24,10 +24,12 @@ def index(id, title, article, user="tizac"):
     )
 
 
-def search(query, user="tizac"):
+def search(query, offset=0, limit=10, user="tizac"):
     result = es.search(
         index=INDEX,
         doc_type=DOC_TYPE,
+        from_=offset,
+        size=limit,
         body={
             'query': {
                 'filtered': {
@@ -60,7 +62,7 @@ def test_index():
 def test_search():
     rst = search("桂鱼")
     for x in rst:
-        print x['_score'], x['_source']["content"]
+        print x['_score'], x['_source']
 
 
 if __name__ == "__main__":

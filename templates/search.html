@@ -1,0 +1,14 @@
+<form method="GET">
+  <label>搜索:</label>
+  <input type="text" name="query" value={{query}}>
+  <input type="submit">
+</form>
+
+
+{% if query %}
+    {% for item in links %}
+    <a href="{{item['_id']}}">{{item['_source']['title']}}</a>
+    <br/>
+    {% end %}
+    <a href="/search?query={{query}}&offset={{limit+offset}}&limit={{limit}}">下页</a>
+{% end %}
