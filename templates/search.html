@@ -69,15 +69,33 @@
       </nav>
 
       {% if query %}
+        <div class="ias-container">
           {% for item in links %}
-          <div style="font-size:16px; margin:5px 0px;">
-            <a href="{{item['_id']}}">{{item['_source']['title']}}</a>
-          </div>
+            <div style="font-size:16px; margin:8px 0px;" class="ias-item">
+              <a href="{{item['_id']}}" >{{item['_source']['title']}}</a>
+            </div>
           {% end %}
-          <a href="/search?query={{query}}&offset={{limit+offset}}&limit={{limit}}">下页</a>
+          <div class="ias-pager">
+            <a class="next" href="/search?query={{query}}&offset={{limit+offset}}&limit={{limit}}">下页</a>
+          </div>
+        </div>
       {% end %}
 
     </div>
+
+    <script src="http://libs.baidu.com/jquery/2.0.0/jquery.min.js"></script>
+    <script src="/static/jquery-ias.min.js"></script>
+    <script>
+    $(document).ready(function() {
+      jQuery.ias({
+        container : '.ias-container',
+        item: '.ias-item',
+        pagination: '.ias-pager',
+        next: '.ias-pager a.next'
+      })
+    });
+    </script>
+
 
   </body>
 </html>
