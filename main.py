@@ -2,6 +2,7 @@ import re
 import tornado.ioloop
 import tornado.web
 import html2text
+import functools
 from tornado.httpclient import AsyncHTTPClient
 from tornado import gen
 from readability.readability import Document
@@ -35,6 +36,15 @@ def html_to_text(html):
     return clean_html.handle(html)
 
 
+def logined(func):
+    @functools.wraps(func)
+    def wrapper(self, *args, **kw):
+        if not self.current_user:
+            self.redirect("/login")
+        return func(self, *args, **kw)
+    return wrapper
+
+
 class BaseHandler(tornado.web.RequestHandler):
     def get_current_user(self):
         return self.get_secure_cookie("user")
@@ -53,12 +63,10 @@ class LoginHandler(BaseHandler):
 
 
 class MainHandler(BaseHandler):
+    @logined
     def get(self):
-        if not self.current_user:
-            self.redirect("/login")
-            return
-        name = tornado.escape.xhtml_escape(self.current_user)
-        self.write("Hello, " + name)
+        user = tornado.escape.xhtml_escape(self.current_user)
+        self.write("Hello, " + user)
 
 
 class ExtractHandler(BaseHandler):
@@ -83,10 +91,8 @@ class ExtractHandler(BaseHandler):
 
 
 class ImportBookmarksHandler(BaseHandler):
+    @logined
     def get(self):
-        if not self.current_user:
-            self.redirect("/login")
-            return
         return self.render('templates/import_bookmarks.html')
 
     @gen.coroutine
@@ -112,10 +118,8 @@ class ImportBookmarksHandler(BaseHandler):
 
 
 class SearchHandler(BaseHandler):
+    @logined
     def get(self):
-        if not self.current_user:
-            self.redirect("/login")
-            return
         user = tornado.escape.xhtml_escape(self.current_user)
         query = self.get_argument('query', '')
         if query:
