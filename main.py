@@ -1,10 +1,10 @@
+import re
 import tornado.ioloop
 import tornado.web
-import re
+import html2text
 from tornado.httpclient import AsyncHTTPClient
 from tornado import gen
 from readability.readability import Document
-from datetime import datetime
 from elasticsearch import Elasticsearch
 from search import index, search
 
@@ -13,14 +13,26 @@ HREF_REGEXP = re.compile(r'href=["\'](.*?)[\'"]', re.IGNORECASE)
 es = Elasticsearch()
 
 
-def extract(text):
+def extract(html):
     try:
-        doc = Document(text)
+        doc = Document(html)
         article = doc.summary()
         title = doc.short_title()
-        return title, article
+        return {
+            'title': title,
+            'article': html_to_text(article),
+            'full_text': html_to_text(html)
+        }
     except:
-        return None, None
+        return {}
+
+
+def html_to_text(html):
+    clean_html = html2text.HTML2Text()
+    clean_html.ignore_links = True
+    clean_html.ignore_images = True
+
+    return clean_html.handle(html)
 
 
 class MainHandler(tornado.web.RequestHandler):
@@ -34,9 +46,18 @@ class ExtractHandler(tornado.web.RequestHandler):
         url = self.get_argument('url', '')
         http_client = AsyncHTTPClient()
         resp = yield http_client.fetch(url)
-        title, article = extract(resp.body)
-        self.write(title)
-        self.write(article)
+        body = resp.body.decode('utf8')
+
+        inform = extract(body)
+        if not inform:
+            return self.finish('error')
+
+        self.write(
+            u'''
+            <p>{title}</p>
+            <p>{article}</p>
+            '''.format(**inform)
+        )
 
 
 class ImportBookmarksHandler(tornado.web.RequestHandler):
@@ -55,21 +76,25 @@ class ImportBookmarksHandler(tornado.web.RequestHandler):
             try:
                 resp = yield AsyncHTTPClient().fetch(url, connect_timeout=5)
             except:
-                self.write('fetch %s error' % url)
+                self.write('fetch %s error<br>' % url)
                 continue
-            title, article = extract(resp.body)
-            self.write('<p>title: %s</p>' % title)
+            inform = extract(resp.body)
+            if not inform:
+                continue
+            title = inform['title']
+            article = inform['article']
+            self.write('<p>title: %s</p>' % inform.get('title'))
             index(url, title, article)
-            self.flush()
 
 
 class SearchHandler(tornado.web.RequestHandler):
     def get(self):
-        user = self.get_argument('user', '')
+        user = self.get_argument('user', 'tizac')
         query = self.get_argument('query', '')
         result = search(query, user)
         for x in result:
             self.write(x['_source']["title"])
+            self.write('<br>')
 
 
 application = tornado.web.Application([
