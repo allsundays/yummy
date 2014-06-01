@@ -1,11 +1,13 @@
 argparse==1.2.1
 backports.ssl-match-hostname==3.4.0.2
 chardet==2.2.1
+charlockholmes==0.0.2
 cssselect==0.9.1
 elasticsearch==1.0.0
+html2text==2014.4.5
 lxml==3.3.5
+pycrypto==2.6.1
 readability-lxml==0.3.0.3
 tornado==3.2.1
 urllib3==1.8.2
 wsgiref==0.1.2
-html2text

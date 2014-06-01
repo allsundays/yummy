@@ -1,19 +1,20 @@
 import re
+import md5
 import tornado.ioloop
-import tornado.web
 import html2text
 import logging
-import functools
 from tornado.httpclient import AsyncHTTPClient
 from tornado import gen
 from tornado.auth import GoogleOAuth2Mixin
+from tornado.web import authenticated, HTTPError, RedirectHandler, RequestHandler
 from readability.readability import Document
 from elasticsearch import Elasticsearch
 from search import index, search
 from charlockholmes import detect
-
+from lib.google_user_id_token import parse_id_token
 
 HREF_REGEXP = re.compile(r'href=["\'](.*?)[\'"]', re.IGNORECASE)
+GRAVATAR = 'http://www.gravatar.com/avatar/%s?s=40'
 es = Elasticsearch()
 
 
@@ -54,57 +55,80 @@ def get_and_extract(url, timeout=5):
     raise gen.Return(extract(body))
 
 
-def logined(func):
-    @functools.wraps(func)
-    def wrapper(self, *args, **kw):
-        if not self.current_user:
-            self.redirect("/login")
-        return func(self, *args, **kw)
-    return wrapper
+def login(req, user, access_token=None):
+    email = user
+    user_name = email.split('@')[0]
+    avatar = GRAVATAR % md5.new(email.lower()).hexdigest()
+    req.set_secure_cookie('user', user_name)
+    req.set_secure_cookie('email', email)
+    req.set_secure_cookie('avatar', avatar)
+    if access_token:
+        req.set_secure_cookie('access_token', access_token)
 
 
-class BaseHandler(tornado.web.RequestHandler):
+def logout(req):
+    req.clear_all_cookies()
+
+
+class BaseHandler(RequestHandler):
     def get_current_user(self):
-        return tornado.escape.xhtml_escape(self.get_secure_cookie("user") or '')
+        return self.get_secure_cookie("user")
+
+
+class LoginRequiredMixin(RequestHandler):
+    @authenticated
+    def prepare(self):
+        super(LoginRequiredMixin, self).prepare()
+        self.email = self.get_secure_cookie('email')
+        self.avatar = self.get_secure_cookie('avatar')
+        print self.email
 
 
 class LoginHandler(BaseHandler):
     def get(self):
-        self.write('<html><body><form action="/login" method="post">'
-                   'Name: <input type="text" name="name">'
-                   '<input type="submit" value="Sign in">'
-                   '</form></body></html>')
+        if self.current_user:
+            self.redirect('/')
+        self.render('templates/login.html')
 
-    def post(self):
-        self.set_secure_cookie("user", self.get_argument("name"))
-        self.redirect("/")
+
+class LogoutHandler(BaseHandler, LoginRequiredMixin):
+    def get(self):
+        logout(self)
+        self.redirect(self.settings.get('login_url'))
 
 
 class GoogleOAuthHandler(BaseHandler, GoogleOAuth2Mixin):
     @gen.coroutine
     def get(self):
-        if self.get_argument('code', False):
-            code = self.get_argument('code')
-            print code
-            user = yield self.get_authenticated_user(
-                redirect_uri='http://www.allsunday.in:8888/auth/google',
-                code=code)
-            print user
-            # self.set_secure_cookie("user", self.get_argument("name"))
+        code = self.get_argument('code', False)
+        if code:
+            info = yield self.exchange_code_for_access_token(code)
+            self._save_info(info)
+            self.redirect(self.get_argument('next', '/'))
         else:
-            yield self.authorize_redirect(
-                redirect_uri='http://www.allsunday.in:8888/auth/google',
-                client_id=self.settings['google_oauth']['key'],
-                scope=['openid', 'profile', 'email'],
-                response_type='code',
-                extra_params={'approval_prompt': 'auto'})
+            yield self.request_for_code()
 
+    def exchange_code_for_access_token(self, code):
+        if self.get_argument('state', '') != self.xsrf_token:
+            raise HTTPError(403, "state does not match")
 
-class MainHandler(BaseHandler):
-    @logined
-    def get(self):
-        user = self.current_user
-        self.write("Hello, " + user)
+        return self.get_authenticated_user(
+            redirect_uri='http://www.allsunday.in:8888/auth/google',
+            code=code)
+
+    def request_for_code(self):
+        return self.authorize_redirect(
+            redirect_uri='http://www.allsunday.in:8888/auth/google',
+            client_id=self.settings['google_oauth']['key'],
+            scope=['openid', 'profile', 'email'],
+            response_type='code',
+            extra_params={'approval_prompt': 'auto', 'state': self.xsrf_token})
+
+    def _save_info(self, info):
+        access_token = info['access_token']
+        id_token = parse_id_token(info['id_token'])
+        email = id_token['email']
+        login(self, email, access_token)
 
 
 class ExtractHandler(BaseHandler):
@@ -124,8 +148,7 @@ class ExtractHandler(BaseHandler):
         )
 
 
-class ImportBookmarksHandler(BaseHandler):
-    @logined
+class ImportBookmarksHandler(BaseHandler, LoginRequiredMixin):
     def get(self):
         return self.render('templates/import_bookmarks.html')
 
@@ -146,21 +169,24 @@ class ImportBookmarksHandler(BaseHandler):
             index(url, inform['title'], inform['article'], inform['full_text'], user)
 
 
-class SearchHandler(BaseHandler):
-    @logined
+class SearchHandler(BaseHandler, LoginRequiredMixin):
     def get(self):
-        user = self.current_user
         query = self.get_argument('query', '')
+        offset = int(self.get_argument('offset', 0))
+        limit = int(self.get_argument("limit", 30))
+        next_page_url = search_path = self.reverse_url('search')
+        links = []
         if query:
-            offset = int(self.get_argument('offset', 0))
-            limit = int(self.get_argument("limit", 30))
-            links = search(query, offset, limit, user)
-            self.render("templates/search.html", query=query, links=links, offset=offset, limit=limit)
-        else:
-            self.render("templates/search.html", query="")
+            links = search(query, offset, limit, self.current_user)
+            next_page_url = u'{search_path}?query={query}&offset={offset}&limit={limit}'.format(
+                search_path=search_path, query=query, offset=offset+limit, limit=limit)
+
+        self.render("templates/search.html",
+            query=query, next_page_url=next_page_url, links=links,
+            user=self.current_user, avatar=self.avatar)
 
 
-class AddBookmarkHandler(BaseHandler):
+class AddBookmarkHandler(BaseHandler, LoginRequiredMixin):
     @gen.coroutine
     def post(self):
         url = self.get_argument('url')
@@ -174,11 +200,12 @@ class AddBookmarkHandler(BaseHandler):
 
 
 application = tornado.web.Application([
-    (r"/", SearchHandler),
+    (r"/", RedirectHandler, {'url': '/search'}),
     (r"/extract", ExtractHandler),
     (r'/import', ImportBookmarksHandler),
     (r"/login", LoginHandler),
-    (r"/search", SearchHandler),
+    (r"/logout", LogoutHandler),
+    (r"/search", SearchHandler, {}, 'search'),
     (r"/add", AddBookmarkHandler),
     (r"/auth/google", GoogleOAuthHandler),
     (r"/static/(.*)", tornado.web.StaticFileHandler, {"path": "static"})
@@ -186,6 +213,8 @@ application = tornado.web.Application([
     debug=True,
     autoreload=True,
     cookie_secret="dev@yummy",
+    xsrf_cookies=True,
+    login_url='/login',
     google_oauth={
         'key': '546860121082-ud7ps1vt57badn28vs83vojv6v7qor2n.apps.googleusercontent.com',
         'secret': '76aBh8MbikO61E7kaAKfSroC',

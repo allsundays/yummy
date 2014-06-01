@@ -7,6 +7,7 @@
     <title>Yummy</title>
 
     <link href="http://libs.baidu.com/bootstrap/3.0.3/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/static/css/style.css" rel="stylesheet">
   </head>
   <body>
     <div style="width:960px;margin:0 auto;">
@@ -21,28 +22,11 @@
               <span class="icon-bar"></span>
               <span class="icon-bar"></span>
             </button>
-            <a class="navbar-brand" href="#">Brand</a>
+            <a class="navbar-brand" href="/">Yummy</a>
           </div>
 
           <!-- Collect the nav links, forms, and other content for toggling -->
           <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
-            <ul class="nav navbar-nav">
-              <li class="active"><a href="#">Link</a></li>
-              <li><a href="#">Link</a></li>
-              <li class="dropdown">
-                <a href="#" class="dropdown-toggle" data-toggle="dropdown">Dropdown <b class="caret"></b></a>
-                <ul class="dropdown-menu">
-                  <li><a href="#">Action</a></li>
-                  <li><a href="#">Another action</a></li>
-                  <li><a href="#">Something else here</a></li>
-                  <li class="divider"></li>
-                  <li><a href="#">Separated link</a></li>
-                  <li class="divider"></li>
-                  <li><a href="#">One more separated link</a></li>
-                </ul>
-              </li>
-            </ul>
-
             <form class="navbar-form navbar-left" role="search" method="GET">
               <div class="form-group">
                 <input type="text" class="form-control" name="query" placeholder="Search" value={{query}}>
@@ -52,15 +36,15 @@
 
             </form>
             <ul class="nav navbar-nav navbar-right">
-              <li><a href="#">Link</a></li>
               <li class="dropdown">
-                <a href="#" class="dropdown-toggle" data-toggle="dropdown">Dropdown <b class="caret"></b></a>
+                <a href="#" class="dropdown-toggle avatar-link" data-toggle="dropdown">
+                  <img src="{{avatar}}" alt="{{user}}" class="img-circle">
+                 <b class="caret"></b></a>
                 <ul class="dropdown-menu">
-                  <li><a href="#">Action</a></li>
-                  <li><a href="#">Another action</a></li>
-                  <li><a href="#">Something else here</a></li>
+                  <li><a href="/add">Add Bookmark</a></li>
+                  <li><a href="/import">Import Bookmarks</a></li>
                   <li class="divider"></li>
-                  <li><a href="#">Separated link</a></li>
+                  <li><a href="/logout">Logout</a></li>
                 </ul>
               </li>
             </ul>
@@ -72,11 +56,11 @@
         <div class="ias-container">
           {% for item in links %}
             <div style="font-size:16px; margin:8px 0px;" class="ias-item">
-              <a href="{{item['_id']}}" >{{item['_source']['title']}}</a>
+              <a href="{{item['_id']}}" target="_blank">{{item['_source']['title']}}</a>
             </div>
           {% end %}
           <div class="ias-pager">
-            <a class="next" href="/search?query={{query}}&offset={{limit+offset}}&limit={{limit}}">下页</a>
+            <a class="next" href="{{next_page_url}}">下页</a>
           </div>
         </div>
       {% end %}
@@ -84,6 +68,7 @@
     </div>
 
     <script src="http://libs.baidu.com/jquery/2.0.0/jquery.min.js"></script>
+    <script src="http://libs.baidu.com/bootstrap/3.0.3/js/bootstrap.min.js"></script>
     <script src="/static/jquery-ias.min.js"></script>
     <script>
     $(document).ready(function() {
