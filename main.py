@@ -6,6 +6,7 @@ import logging
 import functools
 from tornado.httpclient import AsyncHTTPClient
 from tornado import gen
+from tornado.auth import GoogleOAuth2Mixin
 from readability.readability import Document
 from elasticsearch import Elasticsearch
 from search import index, search
@@ -64,7 +65,7 @@ def logined(func):
 
 class BaseHandler(tornado.web.RequestHandler):
     def get_current_user(self):
-        return tornado.escape.xhtml_escape(self.get_secure_cookie("user"))
+        return tornado.escape.xhtml_escape(self.get_secure_cookie("user") or '')
 
 
 class LoginHandler(BaseHandler):
@@ -77,6 +78,26 @@ class LoginHandler(BaseHandler):
     def post(self):
         self.set_secure_cookie("user", self.get_argument("name"))
         self.redirect("/")
+
+
+class GoogleOAuthHandler(BaseHandler, GoogleOAuth2Mixin):
+    @gen.coroutine
+    def get(self):
+        if self.get_argument('code', False):
+            code = self.get_argument('code')
+            print code
+            user = yield self.get_authenticated_user(
+                redirect_uri='http://www.allsunday.in:8888/auth/google',
+                code=code)
+            print user
+            # self.set_secure_cookie("user", self.get_argument("name"))
+        else:
+            yield self.authorize_redirect(
+                redirect_uri='http://www.allsunday.in:8888/auth/google',
+                client_id=self.settings['google_oauth']['key'],
+                scope=['openid', 'profile', 'email'],
+                response_type='code',
+                extra_params={'approval_prompt': 'auto'})
 
 
 class MainHandler(BaseHandler):
@@ -159,10 +180,16 @@ application = tornado.web.Application([
     (r"/login", LoginHandler),
     (r"/search", SearchHandler),
     (r"/add", AddBookmarkHandler),
+    (r"/auth/google", GoogleOAuthHandler),
+
 ],
     debug=True,
     autoreload=True,
-    cookie_secret="dev@yummy"
+    cookie_secret="dev@yummy",
+    google_oauth={
+        'key': '546860121082-ud7ps1vt57badn28vs83vojv6v7qor2n.apps.googleusercontent.com',
+        'secret': '76aBh8MbikO61E7kaAKfSroC',
+    }
 )
 
 
