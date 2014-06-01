@@ -174,14 +174,14 @@ class AddBookmarkHandler(BaseHandler):
 
 
 application = tornado.web.Application([
-    (r"/", MainHandler),
+    (r"/", SearchHandler),
     (r"/extract", ExtractHandler),
     (r'/import', ImportBookmarksHandler),
     (r"/login", LoginHandler),
     (r"/search", SearchHandler),
     (r"/add", AddBookmarkHandler),
     (r"/auth/google", GoogleOAuthHandler),
-
+    (r"/static/(.*)", tornado.web.StaticFileHandler, {"path": "static"})
 ],
     debug=True,
     autoreload=True,
