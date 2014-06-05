@@ -1,7 +1,12 @@
-<form method="POST" enctype="multipart/form-data">
-  <label for="bookmark">书签:</label>&nbsp;&nbsp;
-  <input type="file" name="bookmark" id="bookmark">
-  <br>
-  {% raw xsrf_form_html() %}
-  <input type="submit">
+{% extends "base.html" %}
+
+{% block main %}
+<form role="form" method="POST" enctype="multipart/form-data">
+  <div class="form-group">
+    <label for="file">书签文件</label>
+    <input type="file" id="file" name="bookmark">
+    {% raw xsrf_form_html() %}
+  </div>
+  <button type="submit" class="btn btn-primary">Submit</button>
 </form>
+{% end %}

@@ -137,8 +137,7 @@ class ExtractHandler(BaseHandler):
         url = self.get_argument('url', '')
         inform = yield get_and_extract(url)
         if not inform:
-            self.finish('error')
-            raise gen.Return()
+            raise HTTPError(500, 'error')
 
         self.finish(
             u'''
@@ -150,7 +149,8 @@ class ExtractHandler(BaseHandler):
 
 class ImportBookmarksHandler(BaseHandler, LoginRequiredMixin):
     def get(self):
-        return self.render('templates/import_bookmarks.html')
+        return self.render('templates/import_bookmarks.html',
+            user=self.current_user, query='', avatar=self.avatar)
 
     @gen.coroutine
     def post(self):
@@ -192,11 +192,11 @@ class AddBookmarkHandler(BaseHandler, LoginRequiredMixin):
         url = self.get_argument('url')
         inform = yield get_and_extract(url)
         if not inform:
-            self.finish('error')
+            raise HTTPError(500, 'processing url error')
 
         title = inform['title']
         article = inform['article']
-        index(url, title, article, self.current_user)
+        index(url, title, article, inform['full_text'], self.current_user)
 
 
 application = tornado.web.Application([

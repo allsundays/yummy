@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Yummy</title>
+
+    <link href="http://libs.baidu.com/bootstrap/3.0.3/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/static/css/style.css" rel="stylesheet">
+  </head>
+  <body>
+    <div class="modal fade" id="jsAddBookmarkModal">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <form role="form" action="/add" method="POST" id="jsAddBookmarkForm">
+            <div class="modal-header">
+              <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+              <h4 class="modal-title">Add Bookmark</h4>
+            </div>
+            <div class="modal-body">
+              <div class="form-group">
+                <label for="URL">Website URL</label>
+                <input type="url" class="form-control" id="URL" name="url" placeholder="Website URL">
+                {% raw xsrf_form_html() %}
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+              <button type="submit" class="btn btn-primary">Add</button>
+            </div>
+          </form>
+        </div><!-- /.modal-content -->
+
+      </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
+
+    <nav class="navbar navbar-default" role="navigation">
+      <div class="container">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="/">Yummy</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+          <form class="navbar-form navbar-left" role="search" method="GET">
+            <div class="form-group">
+              <input type="text" class="form-control" name="query" placeholder="Search" value={{query}}>
+            </div>
+            <button type="submit" class="btn btn-default">搜索</button>
+          </form>
+          <ul class="nav navbar-nav navbar-right">
+            <li class="dropdown">
+              <a href="#" class="dropdown-toggle avatar-link" data-toggle="dropdown">
+                <img src="{{avatar}}" alt="{{user}}" class="img-circle">
+               <b class="caret"></b></a>
+              <ul class="dropdown-menu">
+                <li><a href="/add" data-toggle="modal" data-target="#jsAddBookmarkModal">Add Bookmark</a></li>
+                <li><a href="/import">Import Bookmarks</a></li>
+                <li class="divider"></li>
+                <li><a href="/logout">Logout</a></li>
+              </ul>
+            </li>
+          </ul>
+        </div><!-- /.navbar-collapse -->
+      </div><!-- /.container -->
+    </nav>
+
+    <div class="container">
+
+      {% block main %}
+      {% end %}
+    </div>
+
+    <script src="http://libs.baidu.com/jquery/2.0.0/jquery.min.js"></script>
+    <script src="http://libs.baidu.com/bootstrap/3.0.3/js/bootstrap.min.js"></script>
+    <script src="/static/jquery-ias.min.js"></script>
+    <script>
+    $(document).ready(function() {
+      $.ias({
+        container : '.ias-container',
+        item: '.ias-item',
+        pagination: '.ias-pager',
+        next: '.ias-pager a.next'
+      });
+
+      $('#jsAddBookmarkForm').on('submit', function(e) {
+        e.preventDefault();
+        var $self = $(this);
+        $.ajax({
+          url: $self.attr('action'),
+          type: 'post',
+          data: $self.serializeArray()
+        }).done(function() {
+          alert('ok');
+          $('#jsAddBookmarkModal').modal('hide')
+        })
+      })
+    });
+    </script>
+
+
+  </body>
+</html>
+
+
