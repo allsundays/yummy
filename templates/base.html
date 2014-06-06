@@ -88,7 +88,11 @@
         container : '.ias-container',
         item: '.ias-item',
         pagination: '.ias-pager',
-        next: '.ias-pager a.next'
+        next: '.ias-pager a.next',
+        loader: '',
+        history: false,
+        triggerPageThreshold: 1000,
+        thresholdMargin: -300
       });
 
       $('#jsAddBookmarkForm').on('submit', function(e) {

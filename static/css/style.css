@@ -1,3 +1,26 @@
 .nav .avatar-link {
   padding: 5px 15px 5px 25px;
 }
+
+p {
+  margin:0;
+}
+
+.link {
+  font-size:14px;
+  margin:0 0 22px;
+}
+
+.link .title {
+  /*color:#1a0dab;*/
+  font-size:18px;
+}
+
+.link .time {
+  color:green;
+}
+
+.link .full-text {
+  color:gray;
+
+}

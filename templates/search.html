@@ -1,16 +1,16 @@
 {% extends "base.html" %}
 
 {%block main %}
-  {% if query %}
     <div class="ias-container">
       {% for item in links %}
-        <div style="font-size:16px; margin:8px 0px;" class="ias-item">
-          <a href="{{item['_id']}}" target="_blank">{{item['_source']['title']}}</a>
+        <div class="ias-item link">
+          <a href="{{item['_id']}}" class="title" target="_blank">{{item['_source']['title']}}</a>
+          <p class="time">{{item['_id']}}, &nbsp;{{item['_source']['timestamp']}}</p>
+          <p class="full-text">{{item['_source']['full_text'][:200]}}</p>
         </div>
       {% end %}
       <div class="ias-pager">
         <a class="next" href="{{next_page_url}}">下页</a>
       </div>
     </div>
-  {% end %}
 {% end %}

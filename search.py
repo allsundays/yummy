@@ -26,35 +26,69 @@ def index(id, title, article, full_text, user):
 
 
 def search(query, offset=0, limit=10, user=None):
+    print "!!!#%s#" % query
     if user:
-        body = {
+        if query:
+            body = {
+                    'query': {
+                        'filtered': {
+                            'query': {
+                                "query_string": {
+                                    "query": query
+                                }
+                            },
+                            'filter': {
+                                "term": {
+                                    "user": user
+                                }
+                            }
+                        }
+                    }
+                }
+        else:
+            body = {
+                    'query': {
+                        'filtered': {
+                            'query': {
+                                "match_all" : { }
+                            },
+                            'filter': {
+                                "term": {
+                                    "user": user
+                                }
+                            }
+                        }
+                    },
+                    'sort': [
+                          {"timestamp" : {"order" : "desc"}}
+                       ]
+                }
+    else:
+        if query:
+            body = {
                 'query': {
                     'filtered': {
                         'query': {
                             "query_string": {
                                 "query": query
                             }
-                        },
-                        'filter': {
-                            "term": {
-                                "user": user
+                        }
+                    }
+                }
+            }
+        else:
+            body = {
+                    'query': {
+                        'filtered': {
+                            'query': {
+                                "match_all" : { }
                             }
                         }
-                    }
+                    },
+                    'sort': [
+                          {"timestamp" : {"order" : "desc"}}
+                       ]
                 }
-            }
-    else:
-        body = {
-            'query': {
-                'filtered': {
-                    'query': {
-                        "query_string": {
-                            "query": query
-                        }
-                    }
-                }
-            }
-        }
 
     result = es.search(
         index=INDEX,
@@ -63,6 +97,7 @@ def search(query, offset=0, limit=10, user=None):
         size=limit,
         body=body
     )
+
     return result['hits']['hits']
 
 
