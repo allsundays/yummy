@@ -68,6 +68,7 @@ def search(query, offset=0, limit=10, user=None):
                     },
                     "highlight": {
                         "fields": {
+                            "title": {},
                             "full_text": {"fragment_size" : 40}
                         }
                     },
