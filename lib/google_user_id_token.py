@@ -35,6 +35,8 @@ _CLOCK_SKEW_SECS = 300
 _MAX_TOKEN_LIFETIME_SECS = 86400
 _DEFAULT_CERT_URI = ('https://www.googleapis.com/service_accounts/v1/metadata/'
                     'raw/federated-signon@system.gserviceaccount.com')
+
+# https://www.googleapis.com/oauth2/v2/certs
 _DEFAULT_CERTS = '''
 {
     "keys": [
@@ -42,16 +44,16 @@ _DEFAULT_CERTS = '''
             "kty": "RSA",
             "alg": "RS256",
             "use": "sig",
-            "kid": "f21c8c987c6d35890a0af63614f58059ae87dc49",
-            "n": "AKPQqEI05SoeqRJUnofSZje2lA/U5vkd5isOW7zKHEnN/2+MIowxFzWJn7PnONeGfBJZZY+uQjHXHdOavsXn1DG66IeRNN5brSxiUwl3EDPhgOG+MISuwnLET9+RTnrcdTJGHhu60U/Qk1tHRgsw4jClm0KXCAwi/G7jzxi7OYtl",
+            "kid": "1672994d92efd7f94210f6e6558bbfc6819e280b",
+            "n": "AMHlELIXrXphInB/85TVOXlkqoFNtPrz+t41yq+GeSSdwk58RhmBOVMCuV+ZAThUlN1gK2Kht/twbKKFAZnhhHYjOwPewJmGTjq1c7nItNfr0B7y9HDYv1YKl9GRV3sC+/R6UAMmv+9ikgErW5WRlTHfOxoagXiJyYMAxCtMqsZ5",
             "e": "AQAB"
         },
         {
             "kty": "RSA",
             "alg": "RS256",
             "use": "sig",
-            "kid": "6e28c2bbe12a7d6917e56fb39ab91933ca6e338a",
-            "n": "AKzTdiLC50z+R4SnEN3+nJe+/6tE2NPnRYo5jJ/0XtqACo/PiQ7Zi7c4Di+8WI26droN+u+CHVttldgXISQVC2VUg5eHyb2HwTxIfXM+Ch4xRf6tGIMXlPK87zPHXc5Pg7kKB5HuhBSQK9CuoCsLZzdZG6MoPnW6IcMCtOmXs7nh",
+            "kid": "85385898cd069b16c7aeac9c6550e31c442f320e",
+            "n": "AJe2Dal9CL4I6q1GtIG29y54118Psb2jUF/IlFZM8GC0W4D17hJ7aIRjCWLvWr5viPKUp8RmH1xjwBUVSCxUIEP+U/1RtILa9xQV/tDDgs5AJEFUR9Z/IeNU3C7grtpwYHYWFT+Efwa9u2EQd3ewzl/74C6cd7Rv1LU312aIaV13",
             "e": "AQAB"
         }
     ]
