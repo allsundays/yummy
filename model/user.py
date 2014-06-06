@@ -4,7 +4,7 @@ from model.base import Model, NotFoundError
 from config import SALT
 
 
-class UserExist(Exception):
+class UserExistException(Exception):
     pass
 
 
@@ -22,7 +22,7 @@ class User(Model):
     @classmethod
     def create(cls, mail, password):
         if cls.get(mail):
-            raise UserExist('User %s exists' % mail)
+            raise UserExistException('User %s exists' % mail)
 
         hashed_passwd = hash_with_salt(password)
         cls._index(
