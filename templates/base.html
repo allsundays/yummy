@@ -57,6 +57,7 @@
             <button type="submit" class="btn btn-default">搜索</button>
           </form>
           <ul class="nav navbar-nav navbar-right">
+            {% if current_user %}
             <li class="dropdown">
               <a href="#" class="dropdown-toggle avatar-link" data-toggle="dropdown">
                 <img src="{{avatar}}" alt="{{user}}" class="img-circle">
@@ -68,6 +69,11 @@
                 <li><a href="/logout">Logout</a></li>
               </ul>
             </li>
+            {% else %}
+            <li>
+              <a href="/login">Login</a>
+            </li>
+            {% end %}
           </ul>
         </div><!-- /.navbar-collapse -->
       </div><!-- /.container -->

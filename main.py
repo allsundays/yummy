@@ -74,6 +74,13 @@ class BaseHandler(RequestHandler):
     def get_current_user(self):
         return self.get_secure_cookie("user")
 
+    def get_template_namespace(self):
+        namespace = super(BaseHandler, self).get_template_namespace()
+        namespace.update({
+            'query': ''
+        })
+        return namespace
+
 
 class LoginRequiredMixin(RequestHandler):
     @authenticated
@@ -81,6 +88,14 @@ class LoginRequiredMixin(RequestHandler):
         super(LoginRequiredMixin, self).prepare()
         self.email = self.get_secure_cookie('email')
         self.avatar = self.get_secure_cookie('avatar')
+
+    def get_template_namespace(self):
+        namespace = super(BaseHandler, self).get_template_namespace()
+        namespace.update({
+            'avatar': self.avatar,
+            'email': self.email,
+        })
+        return namespace
 
 
 class LoginHandler(BaseHandler):
