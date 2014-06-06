@@ -6,16 +6,18 @@ from elasticsearch import Elasticsearch
 # by default we connect to localhost:9200
 es = Elasticsearch()
 
-INDEX = 'testindex'
-DOC_TYPE = 'testtype'
+INDEX = 'yummy_dev'
+DOC_TYPE = 'link'
 
 
-def index(id, title, article, full_text, user):
+def index(url, title, article, full_text, user):
+    id = "%s:%s" % (user, url)
     es.index(
         index=INDEX,
         doc_type=DOC_TYPE,
         id=id,
         body={
+            "url": url,
             "user": user,
             "title": title,
             "article": article,
@@ -134,18 +136,20 @@ def search(query, offset=0, limit=10, user=None):
                           {"timestamp" : {"order" : "desc"}}
                        ]
                 }
-
-    result = es.search(
-        index=INDEX,
-        doc_type=DOC_TYPE,
-        from_=offset,
-        size=limit,
-        body=body
-    )
-    for link in result['hits']['hits']:
-        if 'highlight' in link:
-            print link['highlight']
-            print "########"
+    try:
+        result = es.search(
+            index=INDEX,
+            doc_type=DOC_TYPE,
+            from_=offset,
+            size=limit,
+            body=body
+        )
+    except:
+        return []
+    # for link in result['hits']['hits']:
+    #     if 'highlight' in link:
+    #         print link['highlight']
+    #         print "########"
     return result['hits']['hits']
 
 
