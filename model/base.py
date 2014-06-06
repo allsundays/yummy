@@ -52,3 +52,16 @@ class Model(object):
             doc_type=cls.Meta.doc_type,
             **kwargs
         )
+
+    @classmethod
+    def _search(cls, *args, **kwargs):
+        # try:
+        result = es.search(
+            *args,
+            index=cls.Meta.index,
+            doc_type=cls.Meta.doc_type,
+            **kwargs
+        )
+        return result['hits']['hits']
+        # except:
+        #     return []
