@@ -9,7 +9,7 @@ from tornado.auth import GoogleOAuth2Mixin
 from tornado.web import authenticated, HTTPError, RedirectHandler, RequestHandler
 from readability.readability import Document
 from elasticsearch import Elasticsearch
-from search import index, search
+from model.search import index, search
 from charlockholmes import detect
 from lib.google_user_id_token import parse_id_token
 
