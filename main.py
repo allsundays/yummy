@@ -81,7 +81,6 @@ class LoginRequiredMixin(RequestHandler):
         super(LoginRequiredMixin, self).prepare()
         self.email = self.get_secure_cookie('email')
         self.avatar = self.get_secure_cookie('avatar')
-        print self.email
 
 
 class LoginHandler(BaseHandler):
