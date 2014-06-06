@@ -26,17 +26,39 @@ def index(id, title, article, full_text, user):
 
 
 def search(query, offset=0, limit=10, user=None):
-    print "!!!#%s#" % query
     if user:
         if query:
             body = {
                     'query': {
                         'filtered': {
-                            'query': {
-                                "query_string": {
-                                    "query": query
-                                }
+
+                            "query": {
+                                "bool": {
+                                    "must": {
+                                        "match": {
+                                            "full_text": { 
+                                                "query":    query,
+                                                "operator": "and"
+                                            }
+                                        }
+                                    },
+                                    "should": [
+                                        { "match": {
+                                            "title": {
+                                                "query": query,
+                                                "boost": 10
+                                            }
+                                        }},
+                                        { "match": {
+                                            "article": {
+                                                "query": query,
+                                                "boost": 3
+                                            }
+                                        }}
+                                    ]
+                                },
                             },
+
                             'filter': {
                                 "term": {
                                     "user": user
@@ -66,14 +88,31 @@ def search(query, offset=0, limit=10, user=None):
     else:
         if query:
             body = {
-                'query': {
-                    'filtered': {
-                        'query': {
-                            "query_string": {
-                                "query": query
+                "query": {
+                    "bool": {
+                        "must": {
+                            "match": {
+                                "full_text": { 
+                                    "query":    query,
+                                    "operator": "and"
+                                }
                             }
-                        }
-                    }
+                        },
+                        "should": [
+                            { "match": {
+                                "title": {
+                                    "query": query,
+                                    "boost": 10
+                                }
+                            }},
+                            { "match": {
+                                "article": {
+                                    "query": query,
+                                    "boost": 3
+                                }
+                            }}
+                        ]
+                    },
                 }
             }
         else:
