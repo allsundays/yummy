@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% autoescape None %}
 
 {%block main %}
     <div class="ias-container">
@@ -6,7 +7,14 @@
         <div class="ias-item link">
           <a href="{{item['_id']}}" class="title" target="_blank">{{item['_source']['title']}}</a>
           <p class="time">{{item['_id']}}, &nbsp;{{item['_source']['timestamp']}}</p>
-          <p class="full-text">{{item['_source']['full_text'][:200]}}</p>
+
+          {% if 'highlight' in item %}
+            <p class="full-text">
+              {% for hl in item['highlight']['full_text'] %}
+                {{hl}}...
+              {% end %}
+            </p>
+          {% end %}
         </div>
       {% end %}
       <div class="ias-pager">

@@ -21,6 +21,11 @@ p {
 }
 
 .link .full-text {
-  color:gray;
+  color:#545454;
 
+}
+
+em {
+  color:#dd4b39;
+  font-style: normal;
 }

@@ -173,16 +173,10 @@ class SearchHandler(BaseHandler, LoginRequiredMixin):
         query = self.get_argument('query', '')
         offset = int(self.get_argument('offset', 0))
         limit = int(self.get_argument("limit", 30))
-        next_page_url = search_path = self.reverse_url('search')
-        # links = []
-        # if query:
+        search_path = self.reverse_url('search')
         links = search(query, offset, limit, self.current_user)
         next_page_url = u'{search_path}?query={query}&offset={offset}&limit={limit}'.format(
             search_path=search_path, query=query, offset=offset+limit, limit=limit)
-
-        print query
-        print links
-        print next_page_url
 
         self.render("templates/search.html",
             query=query, next_page_url=next_page_url, links=links,

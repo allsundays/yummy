@@ -65,7 +65,12 @@ def search(query, offset=0, limit=10, user=None):
                                 }
                             }
                         }
-                    }
+                    },
+                    "highlight": {
+                        "fields": {
+                            "full_text": {"fragment_size" : 40}
+                        }
+                    },
                 }
         else:
             body = {
@@ -136,7 +141,10 @@ def search(query, offset=0, limit=10, user=None):
         size=limit,
         body=body
     )
-
+    for link in result['hits']['hits']:
+        if 'highlight' in link:
+            print link['highlight']
+            print "########"
     return result['hits']['hits']
 
 
