@@ -12,7 +12,7 @@
           {% end %}
           <p class="time">{{item['_source']['url']}}, &nbsp;{{item['_source']['timestamp']}}</p>
 
-          {% if 'highlight' in item %}
+          {% if 'highlight' in item and 'full_text' in item['highlight'] %}
             <p class="full-text">
               {% for hl in item['highlight']['full_text'] %}
                 {{hl}}...

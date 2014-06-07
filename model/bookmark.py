@@ -68,7 +68,7 @@ class Bookmark(Model):
         return ret
 
     @classmethod
-    def search_in_user(cls, user_mail, query, offset=0, limit=20):
+    def search_in_user(cls, user_mail, query, offset=0, limit=10):
         body = {
             'query': {
                 'filtered': {
@@ -119,7 +119,7 @@ class Bookmark(Model):
         return ret
 
     @classmethod
-    def latest_in_site(cls, offset=0, limit=20):
+    def latest_in_site(cls, offset=0, limit=10):
         body = {
             'query': {
                 'filtered': {
@@ -140,7 +140,7 @@ class Bookmark(Model):
         return ret
 
     @classmethod
-    def search_in_site(cls, query, offset=0, limit=20):
+    def search_in_site(cls, query, offset=0, limit=10):
         body = {
             "query": {
                 "bool": {

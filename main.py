@@ -7,7 +7,7 @@ from tornado import gen
 from tornado.web import authenticated, HTTPError, RedirectHandler, RequestHandler
 from readability.readability import Document
 from elasticsearch import Elasticsearch
-from model.search import index, search
+from model.bookmark import Bookmark
 from charlockholmes import detect
 from model.user import User
 
@@ -172,7 +172,7 @@ class ImportBookmarksHandler(BaseHandler, LoginRequiredMixin):
             if not inform:
                 continue
             self.write('<p>title: %s</p>' % inform.get('title'))
-            index(url, inform['title'], inform['article'], inform['full_text'], self.current_user.mail)
+            Bookmark.create(user, url, inform['title'], inform['article'], inform['full_text'])
 
 
 class SearchHandler(BaseHandler, LoginRequiredMixin):
@@ -181,7 +181,11 @@ class SearchHandler(BaseHandler, LoginRequiredMixin):
         offset = int(self.get_argument('offset', 0))
         limit = int(self.get_argument("limit", 30))
         search_path = self.reverse_url('search')
-        links = search(query, offset, limit, self.current_user.mail)
+        user = self.current_user
+        if query:
+            links = Bookmark.search_in_user(user, query, offset, limit)
+        else:
+            links = Bookmark.latest_in_user(user, offset, limit)
         next_page_url = u'{search_path}?query={query}&offset={offset}&limit={limit}'.format(
             search_path=search_path, query=query, offset=offset+limit, limit=limit)
 
@@ -197,9 +201,11 @@ class AddBookmarkHandler(BaseHandler, LoginRequiredMixin):
         if not inform:
             raise HTTPError(500, 'processing url error')
 
+        user = self.current_user
         title = inform['title']
         article = inform['article']
-        index(url, title, article, inform['full_text'], self.current_user.mail)
+        full_text = inform['full_text']
+        Bookmark.create(user, url, title, article, full_text)
 
 
 application = tornado.web.Application([
