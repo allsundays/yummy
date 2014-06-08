@@ -38,7 +38,7 @@ def search(query, offset=0, limit=10, user=None):
                                 "bool": {
                                     "must": {
                                         "match": {
-                                            "full_text": { 
+                                            "full_text": {
                                                 "query":    query,
                                                 "operator": "and"
                                             }
@@ -100,7 +100,7 @@ def search(query, offset=0, limit=10, user=None):
                     "bool": {
                         "must": {
                             "match": {
-                                "full_text": { 
+                                "full_text": {
                                     "query":    query,
                                     "operator": "and"
                                 }

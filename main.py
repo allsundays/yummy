@@ -122,12 +122,10 @@ class ExtractHandler(BaseHandler):
 
 class ImportBookmarksHandler(BaseHandler, LoginRequiredMixin):
     def get(self):
-        return self.render('templates/import_bookmarks.html',
-            user=self.current_user, query='', avatar=self.avatar)
+        return self.render('templates/import_bookmarks.html')
 
     @gen.coroutine
     def post(self):
-        user = self.current_user
         bookmark_file = self.request.files.get('bookmark')[0]
         body = bookmark_file.body
         matches = HREF_REGEXP.finditer(body)
@@ -139,7 +137,7 @@ class ImportBookmarksHandler(BaseHandler, LoginRequiredMixin):
             if not inform:
                 continue
             self.write('<p>title: %s</p>' % inform.get('title'))
-            index(url, inform['title'], inform['article'], inform['full_text'], user)
+            index(url, inform['title'], inform['article'], inform['full_text'], self.current_user.mail)
 
 
 class SearchHandler(BaseHandler, LoginRequiredMixin):
@@ -148,7 +146,7 @@ class SearchHandler(BaseHandler, LoginRequiredMixin):
         offset = int(self.get_argument('offset', 0))
         limit = int(self.get_argument("limit", 30))
         search_path = self.reverse_url('search')
-        links = search(query, offset, limit, self.current_user)
+        links = search(query, offset, limit, self.current_user.mail)
         next_page_url = u'{search_path}?query={query}&offset={offset}&limit={limit}'.format(
             search_path=search_path, query=query, offset=offset+limit, limit=limit)
 
@@ -166,7 +164,7 @@ class AddBookmarkHandler(BaseHandler, LoginRequiredMixin):
 
         title = inform['title']
         article = inform['article']
-        index(url, title, article, inform['full_text'], self.current_user)
+        index(url, title, article, inform['full_text'], self.current_user.mail)
 
 
 application = tornado.web.Application([
