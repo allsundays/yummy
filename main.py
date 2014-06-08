@@ -1,20 +1,18 @@
 import re
-import md5
 import tornado.ioloop
 import html2text
 import logging
 from tornado.httpclient import AsyncHTTPClient
 from tornado import gen
-from tornado.auth import GoogleOAuth2Mixin
 from tornado.web import authenticated, HTTPError, RedirectHandler, RequestHandler
 from readability.readability import Document
 from elasticsearch import Elasticsearch
 from model.search import index, search
 from charlockholmes import detect
-from lib.google_user_id_token import parse_id_token
+from model.user import User
+
 
 HREF_REGEXP = re.compile(r'href=["\'](.*?)[\'"]', re.IGNORECASE)
-GRAVATAR = 'http://www.gravatar.com/avatar/%s?s=40'
 es = Elasticsearch()
 
 
@@ -55,15 +53,8 @@ def get_and_extract(url, timeout=5):
     raise gen.Return(extract(body))
 
 
-def login(req, user, access_token=None):
-    email = user
-    user_name = email.split('@')[0]
-    avatar = GRAVATAR % md5.new(email.lower()).hexdigest()
-    req.set_secure_cookie('user', user_name)
-    req.set_secure_cookie('email', email)
-    req.set_secure_cookie('avatar', avatar)
-    if access_token:
-        req.set_secure_cookie('access_token', access_token)
+def login(req, user):
+    req.set_secure_cookie('mail', user.mail)
 
 
 def logout(req):
@@ -72,7 +63,7 @@ def logout(req):
 
 class BaseHandler(RequestHandler):
     def get_current_user(self):
-        return self.get_secure_cookie("user")
+        return User.get(self.get_secure_cookie("mail"))
 
     def get_template_namespace(self):
         namespace = super(BaseHandler, self).get_template_namespace()
@@ -85,17 +76,7 @@ class BaseHandler(RequestHandler):
 class LoginRequiredMixin(RequestHandler):
     @authenticated
     def prepare(self):
-        super(LoginRequiredMixin, self).prepare()
-        self.email = self.get_secure_cookie('email')
-        self.avatar = self.get_secure_cookie('avatar')
-
-    def get_template_namespace(self):
-        namespace = super(BaseHandler, self).get_template_namespace()
-        namespace.update({
-            'avatar': self.avatar,
-            'email': self.email,
-        })
-        return namespace
+        pass
 
 
 class LoginHandler(BaseHandler):
@@ -104,45 +85,23 @@ class LoginHandler(BaseHandler):
             self.redirect('/')
         self.render('templates/login.html')
 
+    def post(self):
+        mail = self.get_argument('mail')
+        password = self.get_argument('password')
+
+        if User.verify(mail, password):
+            u = User.get(mail)
+            login(self, u)
+
+            return self.redirect('/')
+
+        self.render('templates/login.html', error='Invalid mail or password')
+
 
 class LogoutHandler(BaseHandler, LoginRequiredMixin):
     def get(self):
         logout(self)
         self.redirect(self.settings.get('login_url'))
-
-
-class GoogleOAuthHandler(BaseHandler, GoogleOAuth2Mixin):
-    @gen.coroutine
-    def get(self):
-        code = self.get_argument('code', False)
-        if code:
-            info = yield self.exchange_code_for_access_token(code)
-            self._save_info(info)
-            self.redirect(self.get_argument('next', '/'))
-        else:
-            yield self.request_for_code()
-
-    def exchange_code_for_access_token(self, code):
-        if self.get_argument('state', '') != self.xsrf_token:
-            raise HTTPError(403, "state does not match")
-
-        return self.get_authenticated_user(
-            redirect_uri='http://www.allsunday.in:8888/auth/google',
-            code=code)
-
-    def request_for_code(self):
-        return self.authorize_redirect(
-            redirect_uri='http://www.allsunday.in:8888/auth/google',
-            client_id=self.settings['google_oauth']['key'],
-            scope=['openid', 'profile', 'email'],
-            response_type='code',
-            extra_params={'approval_prompt': 'auto', 'state': self.xsrf_token})
-
-    def _save_info(self, info):
-        access_token = info['access_token']
-        id_token = parse_id_token(info['id_token'])
-        email = id_token['email']
-        login(self, email, access_token)
 
 
 class ExtractHandler(BaseHandler):
@@ -194,8 +153,7 @@ class SearchHandler(BaseHandler, LoginRequiredMixin):
             search_path=search_path, query=query, offset=offset+limit, limit=limit)
 
         self.render("templates/search.html",
-            query=query, next_page_url=next_page_url, links=links,
-            user=self.current_user, avatar=self.avatar)
+            query=query, next_page_url=next_page_url, links=links)
 
 
 class AddBookmarkHandler(BaseHandler, LoginRequiredMixin):
@@ -219,7 +177,6 @@ application = tornado.web.Application([
     (r"/logout", LogoutHandler),
     (r"/search", SearchHandler, {}, 'search'),
     (r"/add", AddBookmarkHandler),
-    (r"/auth/google", GoogleOAuthHandler),
     (r"/static/(.*)", tornado.web.StaticFileHandler, {"path": "static"})
 ],
     debug=True,

@@ -4,6 +4,9 @@ from model.base import Model, NotFoundError
 from config import SALT
 
 
+GRAVATAR = 'http://www.gravatar.com/avatar/%s?s=40'
+
+
 class UserExistException(Exception):
     pass
 
@@ -12,9 +15,10 @@ class User(Model):
     class Meta:
         doc_type = 'user'
 
-    def __init__(self, mail, password):
+    def __init__(self, mail, password, avatar=None):
         self.mail = mail
         self.password = password
+        self.avatar = GRAVATAR % hashlib.md5(mail.lower()).hexdigest()
 
     def __str__(self):
         return u'<User: %s>' % self.mail
@@ -35,6 +39,8 @@ class User(Model):
 
     @classmethod
     def get(cls, mail):
+        if not mail:
+            return
         try:
             doc = cls._get(id=mail)
             return cls(mail, doc['_source']['password'])
@@ -44,7 +50,7 @@ class User(Model):
     @classmethod
     def verify(cls, mail, password):
         u = cls.get(mail)
-        return hash_with_salt(password) == u.password
+        return u and hash_with_salt(password) == u.password
 
 
 def hash_with_salt(s):
