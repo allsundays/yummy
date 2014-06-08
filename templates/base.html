@@ -13,7 +13,7 @@
     <div class="modal fade" id="jsAddBookmarkModal">
       <div class="modal-dialog">
         <div class="modal-content">
-          <form role="form" action="/add" method="POST" id="jsAddBookmarkForm">
+          <form role="form" action="{{url_for('add')}}" method="POST" id="jsAddBookmarkForm">
             <div class="modal-header">
               <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
               <h4 class="modal-title">Add Bookmark</h4>
@@ -50,7 +50,7 @@
 
         <!-- Collect the nav links, forms, and other content for toggling -->
         <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
-          <form class="navbar-form navbar-left" role="search" method="GET">
+          <form class="navbar-form navbar-left" role="search" method="GET" action="{{url_for('search')}}">
             <div class="form-group">
               <input type="text" class="form-control" name="query" placeholder="Search" value={{query}}>
             </div>
@@ -63,15 +63,18 @@
                 <img src="{{current_user.avatar}}" alt="{{current_user.mail}}" class="img-circle">
                <b class="caret"></b></a>
               <ul class="dropdown-menu">
-                <li><a href="/add" data-toggle="modal" data-target="#jsAddBookmarkModal">Add Bookmark</a></li>
-                <li><a href="/import">Import Bookmarks</a></li>
+                <li><a href="{{url_for('add')}}" data-toggle="modal" data-target="#jsAddBookmarkModal">Add Bookmark</a></li>
+                <li><a href="{{url_for('import')}}">Import Bookmarks</a></li>
                 <li class="divider"></li>
-                <li><a href="/logout">Logout</a></li>
+                <li><a href="{{url_for('logout')}}">Logout</a></li>
               </ul>
             </li>
             {% else %}
             <li>
-              <a href="/login">Login</a>
+              <a href="{{url_for('register')}}">Register</a>
+            </li>
+            <li>
+              <a href="{{url_for('login')}}">Login</a>
             </li>
             {% end %}
           </ul>

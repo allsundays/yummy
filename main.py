@@ -68,7 +68,8 @@ class BaseHandler(RequestHandler):
     def get_template_namespace(self):
         namespace = super(BaseHandler, self).get_template_namespace()
         namespace.update({
-            'query': ''
+            'query': '',
+            'url_for': self.reverse_url,
         })
         return namespace
 
@@ -79,23 +80,57 @@ class LoginRequiredMixin(RequestHandler):
         pass
 
 
+class RegisterHandler(BaseHandler):
+    def get(self):
+        if self.current_user:
+            self.redirect('/')
+        self.render('templates/register.html', error='')
+
+    def post(self):
+        mail = self.get_argument('mail')
+        password1 = self.get_argument('password1')
+        password2 = self.get_argument('password2')
+
+        if User.get(mail):
+            error = 'user exist'
+        elif not mail.strip():
+            error = 'mail can not be empty'
+        elif not password1.strip() or not password2.strip():
+            error = 'password can not be empty'
+        elif password1 != password2:
+            error = 'passwords do not match'
+        else:
+            u = User.create(mail, password1)
+            if u:
+                login(self.u)
+                return self.redirect('/')
+
+        self.render('templates/register.html', error=error)
+
+
 class LoginHandler(BaseHandler):
     def get(self):
         if self.current_user:
             self.redirect('/')
-        self.render('templates/login.html')
+        self.render('templates/login.html', error='')
 
     def post(self):
         mail = self.get_argument('mail')
         password = self.get_argument('password')
 
-        if User.verify(mail, password):
+        if not mail.strip():
+            error = 'mail can not be empty'
+        elif not password.strip():
+            error = 'password can not be empty'
+        elif not User.verify(mail, password):
+            error = 'mail and password do not match'
+        else:
             u = User.get(mail)
             login(self, u)
 
             return self.redirect('/')
 
-        self.render('templates/login.html', error='Invalid mail or password')
+        self.render('templates/login.html', error=error)
 
 
 class LogoutHandler(BaseHandler, LoginRequiredMixin):
@@ -169,12 +204,13 @@ class AddBookmarkHandler(BaseHandler, LoginRequiredMixin):
 
 application = tornado.web.Application([
     (r"/", RedirectHandler, {'url': '/search'}),
-    (r"/extract", ExtractHandler),
-    (r'/import', ImportBookmarksHandler),
-    (r"/login", LoginHandler),
-    (r"/logout", LogoutHandler),
+    (r"/extract", ExtractHandler, {}, 'extract'),
+    (r'/import', ImportBookmarksHandler, {}, 'import'),
+    (r"/register", RegisterHandler, {}, 'register'),
+    (r"/login", LoginHandler, {}, 'login'),
+    (r"/logout", LogoutHandler, {}, 'logout'),
     (r"/search", SearchHandler, {}, 'search'),
-    (r"/add", AddBookmarkHandler),
+    (r"/add", AddBookmarkHandler, {}, 'add'),
     (r"/static/(.*)", tornado.web.StaticFileHandler, {"path": "static"})
 ],
     debug=True,
