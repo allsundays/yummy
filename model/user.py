@@ -52,6 +52,10 @@ class User(Model):
         u = cls.get(mail)
         return u and hash_with_salt(password) == u.password
 
+    @property
+    def hashed_mail(self):
+        return hashlib.sha512(self.mail).hexdigest()
+
 
 def hash_with_salt(s):
     return hashlib.sha512(s + SALT).hexdigest()

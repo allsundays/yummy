@@ -1,4 +1,5 @@
 #coding:utf8
+import hashlib
 from datetime import datetime
 from model.base import Model
 
@@ -7,9 +8,8 @@ class Bookmark(Model):
     class Meta:
         doc_type = 'bookmark'
 
-    def __init__(self, user_mail, url, title, article, full_text):
-        self.url = url
-        self.user_mail = user_mail
+    def __init__(self, user, url, title, article, full_text):
+        self.user = user
         self.url = url
         self.title = title
         self.article = article
@@ -21,17 +21,18 @@ class Bookmark(Model):
 
     @property
     def id(self):
-        return "%s:%s" % (self.user_mail, self.url)
+        key = "%s:%s" % (self.user.mail, self.url)
+        return hashlib.sha512(key).hexdigest()
 
     @classmethod
-    def create(cls, user_mail, url, title, article, full_text):
-        bookmark = cls(user_mail, url, title, article, full_text)
+    def create(cls, user, url, title, article, full_text):
+        bookmark = cls(user, url, title, article, full_text)
         # print bookmark.id
         cls._index(
             id=bookmark.id,
             body={
                 "url": bookmark.url,
-                "user_mail": bookmark.user_mail,
+                "user_mail": bookmark.user.hashed_mail,
                 "title": bookmark.title,
                 "article": bookmark.article,
                 "full_text": bookmark.full_text,
@@ -42,7 +43,15 @@ class Bookmark(Model):
         return bookmark
 
     @classmethod
-    def latest_in_user(cls, user_mail, offset=0, limit=10):
+    def get(cls, id):
+        try:
+            doc = cls._get(id=id)
+            return doc
+        except NotFoundError:
+            return
+
+    @classmethod
+    def latest_in_user(cls, user, offset=0, limit=10):
         body = {
             'query': {
                 'filtered': {
@@ -51,7 +60,7 @@ class Bookmark(Model):
                     },
                     'filter': {
                         "term": {
-                            "user_mail": user_mail
+                            "user_mail": user.hashed_mail
                         }
                     }
                 }
@@ -68,7 +77,7 @@ class Bookmark(Model):
         return ret
 
     @classmethod
-    def search_in_user(cls, user_mail, query, offset=0, limit=10):
+    def search_in_user(cls, user, query, offset=0, limit=10):
         body = {
             'query': {
                 'filtered': {
@@ -98,7 +107,7 @@ class Bookmark(Model):
 
                     'filter': {
                         "term": {
-                            "user_mail": user_mail
+                            "user_mail": user.hashed_mail
                         }
                     }
                 }
@@ -175,15 +184,21 @@ class Bookmark(Model):
 
 
 def test():
-    Bookmark.create(
-        user_mail="tizzac",
-        url="http://www.xiachufang.com/",
-        title="title test",
-        article="article test",
-        full_text="full_text test"
-    )
-    print Bookmark.search_in_user('tizzac', "title")
-    # print Bookmark.search_in_site("title")
+    # Bookmark.create(
+    #     user_mail="tizzac@gmail.com",
+    #     url="http://www.xiachufang.com/",
+    #     title="title test",
+    #     article="article test",
+    #     full_text="full_text test"
+    # )
+    from model.user import User
+    u = User.get("tizzac1@gmail.com")
+    print Bookmark.get('tizzac1@gmail.com:http://www.baidu.com')
+    # print Bookmark.search_in_user(u, '百度')
+    print "*****************"
+    for link in Bookmark.search_in_site("百度", limit=5):
+        print link['_id']
+    # print Bookmark.latest_in_site(limit=1)
 
 
 if __name__ == "__main__":

@@ -102,7 +102,7 @@ class RegisterHandler(BaseHandler):
         else:
             u = User.create(mail, password1)
             if u:
-                login(self.u)
+                login(self, u)
                 return self.redirect('/')
 
         self.render('templates/register.html', error=error)
@@ -164,6 +164,8 @@ class ImportBookmarksHandler(BaseHandler, LoginRequiredMixin):
         bookmark_file = self.request.files.get('bookmark')[0]
         body = bookmark_file.body
         matches = HREF_REGEXP.finditer(body)
+        user = self.current_user
+
         for m in matches:
             url = m.group(1)
             self.write('processing %s<br>' % url)
@@ -205,6 +207,9 @@ class AddBookmarkHandler(BaseHandler, LoginRequiredMixin):
         title = inform['title']
         article = inform['article']
         full_text = inform['full_text']
+        print user
+        print url
+        print title
         Bookmark.create(user, url, title, article, full_text)
 
 
