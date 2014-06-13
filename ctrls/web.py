@@ -51,6 +51,7 @@ class RegisterHandler(BaseHandler):
         password1 = self.get_argument('password1')
         password2 = self.get_argument('password2')
 
+        error = ""
         if User.get_by_mail(mail):
             error = 'user exist'
         elif not mail.strip():
@@ -63,7 +64,7 @@ class RegisterHandler(BaseHandler):
             u = User.create(mail, password1)
             if u:
                 u.send_activate_mail()
-                self.write("please check your mail")
+                self.write("Please check your mail to activate your account.")
         if error:
             self.render('register.html', error=error)
 
@@ -109,6 +110,8 @@ class UserActivateHandler(BaseHandler):
         if u.session == session:
             u.activate()
             self.write('<p>activation success!</p>')
+            login(self, u)
+            return self.redirect('/')
             self.write("<a href='/login'>click here to login</a>")
         else:
             self.write("activation fail!")
@@ -120,7 +123,6 @@ class RetrievePasswordHandler(BaseHandler):
 
     def post(self):
         mail = self.get_argument("mail")
-        print mail
         user = User.get_by_mail(mail)
         if user:
             user.send_reset_password_mail(mail)
