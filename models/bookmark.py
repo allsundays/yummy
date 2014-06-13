@@ -1,7 +1,7 @@
 #coding:utf8
 import hashlib
 from datetime import datetime
-from model.base import Model
+from models.base import Model, NotFoundError
 
 
 class Bookmark(Model):
@@ -74,7 +74,7 @@ class Bookmark(Model):
                 from_=offset,
                 size=limit,
                 body=body
-                )
+            )
         except:
             return []
         return ret
@@ -127,7 +127,7 @@ class Bookmark(Model):
             from_=offset,
             size=limit,
             body=body
-            )
+        )
         return ret
 
     @classmethod
@@ -148,7 +148,7 @@ class Bookmark(Model):
             from_=offset,
             size=limit,
             body=body
-            )
+        )
         return ret
 
     @classmethod
@@ -182,7 +182,7 @@ class Bookmark(Model):
             from_=offset,
             size=limit,
             body=body
-            )
+        )
         return ret
 
 
@@ -197,7 +197,7 @@ def test():
     from model.user import User
     u = User.get("tizzac1@gmail.com")
     print Bookmark.get('tizzac1@gmail.com:http://www.baidu.com')
-    # print Bookmark.search_in_user(u, '百度')
+    print Bookmark.search_in_user(u, '百度')
     print "*****************"
     for link in Bookmark.search_in_site("百度", limit=5):
         print link['_id']

@@ -1,6 +1,6 @@
 #coding:utf8
 import hashlib
-from model.base import Model, NotFoundError
+from models.base import Model, NotFoundError
 from config import SALT
 
 
