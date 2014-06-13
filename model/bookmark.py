@@ -52,28 +52,31 @@ class Bookmark(Model):
 
     @classmethod
     def latest_in_user(cls, user, offset=0, limit=10):
-        body = {
-            'query': {
-                'filtered': {
-                    'query': {
-                        "match_all": {}
-                    },
-                    'filter': {
-                        "term": {
-                            "user_mail": user.hashed_mail
+        try:
+            body = {
+                'query': {
+                    'filtered': {
+                        'query': {
+                            "match_all": {}
+                        },
+                        'filter': {
+                            "term": {
+                                "user_mail": user.hashed_mail
+                            }
                         }
                     }
-                }
-            },
-            'sort': [
-                {"timestamp": {"order": "desc"}}
-            ]
-        }
-        ret = cls._search(
-            from_=offset,
-            size=limit,
-            body=body
-            )
+                },
+                'sort': [
+                    {"timestamp": {"order": "desc"}}
+                ]
+            }
+            ret = cls._search(
+                from_=offset,
+                size=limit,
+                body=body
+                )
+        except:
+            return []
         return ret
 
     @classmethod
