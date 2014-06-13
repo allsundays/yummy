@@ -14,32 +14,30 @@ class Bookmark(Model):
         self.title = title
         self.article = article
         self.full_text = full_text
-        self.timestamp = datetime.now()
+        self.create_time = datetime.now()
 
     def __str__(self):
         return u'<Bookmark: %s>' % self.url
 
     @property
     def id(self):
-        key = "%s:%s" % (self.user.mail, self.url)
+        key = "%s:%s" % (self.user.id, self.url.lower())
         return hashlib.sha512(key).hexdigest()
 
     @classmethod
     def create(cls, user, url, title, article, full_text):
         bookmark = cls(user, url, title, article, full_text)
-        # print bookmark.id
         cls._index(
             id=bookmark.id,
             body={
                 "url": bookmark.url,
-                "user_mail": bookmark.user.hashed_mail,
+                "user_id": bookmark.user.id,
                 "title": bookmark.title,
                 "article": bookmark.article,
                 "full_text": bookmark.full_text,
-                "timestamp": bookmark.timestamp
+                "create_time": bookmark.create_time
             }
         )
-        # print cls._get(id=bookmark.id)
         return bookmark
 
     @classmethod
@@ -61,13 +59,13 @@ class Bookmark(Model):
                         },
                         'filter': {
                             "term": {
-                                "user_mail": user.hashed_mail
+                                "user_id": user.id
                             }
                         }
                     }
                 },
                 'sort': [
-                    {"timestamp": {"order": "desc"}}
+                    {"create_time": {"order": "desc"}}
                 ]
             }
             ret = cls._search(
@@ -110,7 +108,7 @@ class Bookmark(Model):
 
                     'filter': {
                         "term": {
-                            "user_mail": user.hashed_mail
+                            "user_id": user.id
                         }
                     }
                 }
@@ -141,7 +139,7 @@ class Bookmark(Model):
                 }
             },
             'sort': [
-                {"timestamp": {"order": "desc"}}
+                {"create_time": {"order": "desc"}}
             ]
         }
         ret = cls._search(

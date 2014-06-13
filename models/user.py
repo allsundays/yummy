@@ -16,6 +16,7 @@ class User(Model):
         doc_type = 'user'
 
     def __init__(self, mail, password, avatar=None):
+        self.id = self.gen_id(mail)
         self.mail = mail
         self.password = password
         self.avatar = GRAVATAR % hashlib.md5(mail.lower()).hexdigest()
@@ -25,12 +26,13 @@ class User(Model):
 
     @classmethod
     def create(cls, mail, password):
-        if cls.get(mail):
+        id = cls.gen_id(mail)
+        if cls.get(id):
             raise UserExistException('User %s exists' % mail)
 
         hashed_passwd = hash_with_salt(password)
         cls._index(
-            id=mail,
+            id=id,
             body={
                 'password': hashed_passwd
             }
@@ -42,19 +44,21 @@ class User(Model):
         if not mail:
             return
         try:
-            doc = cls._get(id=mail)
+            id = cls.gen_id(mail)
+            doc = cls._get(id=id)
             return cls(mail, doc['_source']['password'])
         except NotFoundError:
             return
 
     @classmethod
     def verify(cls, mail, password):
-        u = cls.get(mail)
+        id = cls.gen_id(mail)
+        u = cls.get(id)
         return u and hash_with_salt(password) == u.password
 
-    @property
-    def hashed_mail(self):
-        return hashlib.sha512(self.mail).hexdigest()
+    @classmethod
+    def gen_id(cls, mail):
+        return hashlib.sha512(mail.lower()).hexdigest()
 
 
 def hash_with_salt(s):

@@ -13,7 +13,6 @@ application = tornado.web.Application([
     (r"/logout", LogoutHandler, {}, 'logout'),
     (r"/search", SearchHandler, {}, 'search'),
     (r"/add", AddBookmarkHandler, {}, 'add'),
-    (r"/explore", ExploreHandler, {}, 'explore'),
     (r"/static/(.*)", tornado.web.StaticFileHandler, {"path": "static"})
 ],
     debug=True,

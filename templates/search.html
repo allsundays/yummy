@@ -10,7 +10,7 @@
           {% else %}
             <a href="{{item['_source']['url']}}" class="title" target="_blank">{{item['_source']['title']}}</a>
           {% end %}
-          <p class="time">{{item['_source']['url']}}, &nbsp;{{item['_source']['timestamp']}}</p>
+          <p class="time">{{item['_source']['url']}}, &nbsp;{{item['_source']['create_time']}}</p>
 
           {% if 'highlight' in item and 'full_text' in item['highlight'] %}
             <p class="full-text">

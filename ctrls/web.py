@@ -164,4 +164,4 @@ class AddBookmarkHandler(BaseHandler, LoginRequiredMixin):
         title = inform['title']
         article = inform['article']
         full_text = inform['full_text']
-        Bookmark.create(user.mail, url, title, article, full_text)
+        Bookmark.create(user, url, title, article, full_text)
