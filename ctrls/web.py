@@ -21,12 +21,9 @@ def logout(req):
 class BaseHandler(RequestHandler):
     def get_current_user(self):
         u = User.get_by_mail(self.get_secure_cookie("mail"))
-        if u:
+        if u and u.status == u"active":
             return u
         return None
-        # if u and u.status == u"active":
-        #     return u
-        # return None
 
     def get_template_namespace(self):
         namespace = super(BaseHandler, self).get_template_namespace()
@@ -65,10 +62,10 @@ class RegisterHandler(BaseHandler):
         else:
             u = User.create(mail, password1)
             if u:
-                login(self, u)
-                return self.redirect('/')
-
-        self.render('register.html', error=error)
+                u.send_activate_mail()
+                self.write("please check your mail")
+        if error:
+            self.render('register.html', error=error)
 
 
 class LoginHandler(BaseHandler):
@@ -88,16 +85,12 @@ class LoginHandler(BaseHandler):
         elif not User.verify(mail, password):
             error = 'mail and password do not match'
         else:
-            # u = User.get_by_mail(mail)
-            # if u and u.status == "active":
-            #     login(self, u)
-            #     return self.redirect('/')
-            # else:
-            #     error = "user not active"
-
             u = User.get_by_mail(mail)
-            login(self, u)
-            return self.redirect("/")
+            if u and u.status == u"active":
+                login(self, u)
+                return self.redirect('/')
+            else:
+                error = "user not active, please check your mail"
 
         self.render('login.html', error=error)
 
