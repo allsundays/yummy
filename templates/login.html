@@ -1,9 +1,11 @@
 {% extends "base.html" %}
 
 {% block main %}
+
 {% if error %}
 <div class="alert alert-danger">{{error}}</div>
 {% end %}
+
 <form role="form" method="POST">
   <div class="form-group">
     <label for="exampleInputEmail1">Email address</label>

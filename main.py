@@ -1,7 +1,8 @@
 import tornado.ioloop
 from tornado.web import RedirectHandler
 
-from ctrls.web import RegisterHandler, LoginHandler, LogoutHandler, ExtractHandler, ImportBookmarksHandler, SearchHandler, AddBookmarkHandler
+from ctrls.web import RegisterHandler, LoginHandler, LogoutHandler, ExtractHandler, ImportBookmarksHandler, \
+    SearchHandler, AddBookmarkHandler, UserActivateHandler, ResetPasswordHandler, RetrievePasswordHandler
 
 
 application = tornado.web.Application([
@@ -13,6 +14,9 @@ application = tornado.web.Application([
     (r"/logout", LogoutHandler, {}, 'logout'),
     (r"/search", SearchHandler, {}, 'search'),
     (r"/add", AddBookmarkHandler, {}, 'add'),
+    (r"/user/activate", UserActivateHandler, {}, 'useractivate'),
+    (r"/user/retrievepassword", RetrievePasswordHandler, {}, 'retrievepassword'),
+    (r"/user/resetpassword", ResetPasswordHandler, {}, 'resetpassword'),
     (r"/static/(.*)", tornado.web.StaticFileHandler, {"path": "static"})
 ],
     debug=True,
