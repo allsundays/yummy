@@ -1,11 +1,12 @@
 <button id="jsVisit">Visit</button>
 <button id="jsAdd">Add</button>
 
-<form action="http://www.allsunday.in:8888/login" method="POST">
+<form action="http://vagrant.dev:8888/login" method="POST" id="jsLogin">
   <input type="mail" name="mail" placeholder="email">
   <input type="password" name="password" placeholder="password">
   <input type="submit" value="Login">
 </form>
 
-<script src="/jquery-2.1.1.min.js"></script>
+<script src="/lib/jquery-2.1.1.min.js"></script>
+<script src="/lib/jquery.cookie.js"></script>
 <script src="popup.js"></script>

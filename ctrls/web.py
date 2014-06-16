@@ -1,9 +1,8 @@
 import re
 from tornado import gen
-from tornado.web import authenticated, HTTPError, RequestHandler
+from tornado.web import authenticated, HTTPError, RequestHandler, RedirectHandler
 from models.bookmark import Bookmark
 from models.user import User
-
 from utils.extract import get_and_extract
 
 
@@ -19,9 +18,6 @@ def logout(req):
 
 
 class BaseHandler(RequestHandler):
-    def get_current_user(self):
-        return User.get(self.get_secure_cookie("mail"))
-
     def get_template_namespace(self):
         namespace = super(BaseHandler, self).get_template_namespace()
         namespace.update({
@@ -31,10 +27,13 @@ class BaseHandler(RequestHandler):
         return namespace
 
 
-class LoginRequiredMixin(RequestHandler):
+class LoginRequiredMixin(object):
     @authenticated
     def prepare(self):
         pass
+
+    def get_current_user(self):
+        return User.get(self.get_secure_cookie("mail"))
 
 
 class RegisterHandler(BaseHandler):
@@ -90,7 +89,7 @@ class LoginHandler(BaseHandler):
         self.render('login.html', error=error)
 
 
-class LogoutHandler(BaseHandler, LoginRequiredMixin):
+class LogoutHandler(LoginRequiredMixin, BaseHandler):
     def get(self):
         logout(self)
         self.redirect(self.settings.get('login_url'))
@@ -112,7 +111,7 @@ class ExtractHandler(BaseHandler):
         )
 
 
-class ImportBookmarksHandler(BaseHandler, LoginRequiredMixin):
+class ImportBookmarksHandler(LoginRequiredMixin, BaseHandler):
     def get(self):
         return self.render('import_bookmarks.html')
 
@@ -134,7 +133,7 @@ class ImportBookmarksHandler(BaseHandler, LoginRequiredMixin):
             Bookmark.create(user, url, inform['title'], inform['article'], inform['full_text'])
 
 
-class SearchHandler(BaseHandler, LoginRequiredMixin):
+class SearchHandler(LoginRequiredMixin, BaseHandler):
     def get(self):
         query = self.get_argument('query', '')
         offset = int(self.get_argument('offset', 0))
@@ -152,7 +151,7 @@ class SearchHandler(BaseHandler, LoginRequiredMixin):
             query=query, next_page_url=next_page_url, links=links)
 
 
-class AddBookmarkHandler(BaseHandler, LoginRequiredMixin):
+class AddBookmarkHandler(LoginRequiredMixin, BaseHandler):
     @gen.coroutine
     def post(self):
         url = self.get_argument('url')
@@ -164,4 +163,16 @@ class AddBookmarkHandler(BaseHandler, LoginRequiredMixin):
         title = inform['title']
         article = inform['article']
         full_text = inform['full_text']
-        Bookmark.create(user.mail, url, title, article, full_text)
+        Bookmark.create(user, url, title, article, full_text)
+
+
+web_handlers = [
+    (r"/", RedirectHandler, {'url': '/search'}, 'index'),
+    (r"/extract", ExtractHandler, {}, 'extract'),
+    (r'/import', ImportBookmarksHandler, {}, 'import'),
+    (r"/register", RegisterHandler, {}, 'register'),
+    (r"/login", LoginHandler, {}, 'login'),
+    (r"/logout", LogoutHandler, {}, 'logout'),
+    (r"/search", SearchHandler, {}, 'search'),
+    (r"/add", AddBookmarkHandler, {}, 'add'),
+]

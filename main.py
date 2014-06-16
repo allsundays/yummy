@@ -1,20 +1,14 @@
 import tornado.ioloop
-from tornado.web import RedirectHandler
 
-from ctrls.web import RegisterHandler, LoginHandler, LogoutHandler, ExtractHandler, ImportBookmarksHandler, SearchHandler, AddBookmarkHandler
+from ctrls.web import web_handlers
+from ctrls.api import api_handlers
 
 
-application = tornado.web.Application([
-    (r"/", RedirectHandler, {'url': '/search'}, 'index'),
-    (r"/extract", ExtractHandler, {}, 'extract'),
-    (r'/import', ImportBookmarksHandler, {}, 'import'),
-    (r"/register", RegisterHandler, {}, 'register'),
-    (r"/login", LoginHandler, {}, 'login'),
-    (r"/logout", LogoutHandler, {}, 'logout'),
-    (r"/search", SearchHandler, {}, 'search'),
-    (r"/add", AddBookmarkHandler, {}, 'add'),
-    (r"/static/(.*)", tornado.web.StaticFileHandler, {"path": "static"})
-],
+application = tornado.web.Application(
+    web_handlers + api_handlers +
+    [
+        (r"/static/(.*)", tornado.web.StaticFileHandler, {"path": "static"})
+    ],
     debug=True,
     cookie_secret="dev@yummy",
     xsrf_cookies=True,

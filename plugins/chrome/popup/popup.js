@@ -1,4 +1,5 @@
-var host = 'http://www.allsunday.in:8888';
+var host = 'http://vagrant.dev:8888',
+    api_prefix = host + '/api/v1';
 
 $('#jsVisit').on('click', function(e) {
   e.preventDefault();
@@ -9,6 +10,7 @@ $('#jsVisit').on('click', function(e) {
 
 $('#jsAdd').on('click', function(e) {
   e.preventDefault();
+  var sk = $.cookie('sk');
   chrome.tabs.query({
     active: true,
     currentWindow: true
@@ -20,10 +22,10 @@ $('#jsAdd').on('click', function(e) {
     var url = tabs[0].url;
     $.ajax({
       type: 'POST',
-      url: host + '/add',
+      url: api_prefix + '/add',
       data: {
         url: url,
-        user: 'gfreezy'
+        sk: sk
       }
     }).done(function(resp) {
       console.log(resp);
@@ -33,3 +35,25 @@ $('#jsAdd').on('click', function(e) {
 
   });
 });
+
+
+$('#jsLogin').on('submit', function(e) {
+  e.preventDefault();
+  $.ajax({
+    type: 'POST',
+    url: api_prefix + '/login',
+    data: $(this).serialize()
+  }).done(function(resp) {
+    var sk = resp.data;
+    $.cookie('sk', sk);
+    alert('ok');
+  });
+});
+
+
+(function() {
+  var sk = $.cookie('sk');
+  if (sk) {
+    $('#jsLogin').hide();
+  }
+})()
