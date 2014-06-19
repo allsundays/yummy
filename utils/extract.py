@@ -1,5 +1,6 @@
 import logging
 import html2text
+import re
 from charlockholmes import detect
 from tornado import gen
 from tornado.httpclient import AsyncHTTPClient
@@ -29,6 +30,9 @@ def html_to_text(html):
     return clean_html.handle(html)
 
 
+charset_regexp = re.compile(r'charset=(.*?)\s?$', re.IGNORECASE)
+
+
 @gen.coroutine
 def get_and_extract(url, timeout=5):
     http_client = AsyncHTTPClient()
@@ -37,7 +41,17 @@ def get_and_extract(url, timeout=5):
     except:
         logging.exception('fetch: %s' % url)
         raise gen.Return({})
-    info = detect(resp.body)
-    body = resp.body.decode(info['encoding'], errors='ignore')
+
+    content_type = resp.headers.get('Content-Type')
+    segs = charset_regexp.findall(content_type)
+    if segs:
+        charset = segs[0]
+    else:
+        charset = detect(resp.body).get('encoding', '')
+
+    try:
+        body = resp.body.decode(charset, errors='ignore')
+    except LookupError:
+        body = resp.body.decode('utf8', errors='ignore')
 
     raise gen.Return(extract(body))
