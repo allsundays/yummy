@@ -1,16 +1,21 @@
 import tornado.ioloop
+import config
 
 from ctrls.web import web_handlers
 from ctrls.api import api_handlers
 
 
-application = tornado.web.Application(
-    web_handlers + api_handlers +
-    [
+handlers = web_handlers + api_handlers
+
+if config.DEBUG:
+    handlers += [
         (r"/static/(.*)", tornado.web.StaticFileHandler, {"path": "static"})
-    ],
-    debug=True,
-    cookie_secret="dev@yummy",
+    ]
+
+application = tornado.web.Application(
+    handlers,
+    debug=config.DEBUG,
+    cookie_secret=config.COOKIE_SECRET,
     xsrf_cookies=True,
     login_url='/login',
     template_path='templates',

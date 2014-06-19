@@ -1,4 +1,4 @@
-var host = 'http://vagrant.dev:8888',
+var host = 'http://yummy.allsunday.in',
     api_prefix = host + '/api/v1';
 
 $('#jsVisit').on('click', function(e) {
