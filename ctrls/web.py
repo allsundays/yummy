@@ -133,6 +133,13 @@ class ImportBookmarksHandler(LoginRequiredMixin, BaseHandler):
             Bookmark.create(user, url, inform['title'], inform['article'], inform['full_text'])
 
 
+class ExportBookmarksHandler(LoginRequiredMixin, BaseHandler):
+    def get(self):
+        user = self.current_user
+        links = Bookmark.latest_in_user(user, offset=0, limit=100000)
+        self.render("export_bookmarks.html", links=links)
+
+
 class SearchHandler(LoginRequiredMixin, BaseHandler):
     def get(self):
         query = self.get_argument('query', '')
@@ -170,6 +177,7 @@ web_handlers = [
     (r"/", RedirectHandler, {'url': '/search'}, 'index'),
     (r"/extract", ExtractHandler, {}, 'extract'),
     (r'/import', ImportBookmarksHandler, {}, 'import'),
+    (r'/export', ExportBookmarksHandler, {}, 'export'),
     (r"/register", RegisterHandler, {}, 'register'),
     (r"/login", LoginHandler, {}, 'login'),
     (r"/logout", LogoutHandler, {}, 'logout'),
