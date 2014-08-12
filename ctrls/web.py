@@ -1,4 +1,6 @@
+# coding:utf8
 import re
+import datetime
 from tornado import gen
 from tornado.web import authenticated, HTTPError, RequestHandler, RedirectHandler
 from models.bookmark import Bookmark
@@ -133,6 +135,16 @@ class ImportBookmarksHandler(LoginRequiredMixin, BaseHandler):
             Bookmark.create(user, url, inform['title'], inform['article'], inform['full_text'])
 
 
+class ExportBookmarksHandler(LoginRequiredMixin, BaseHandler):
+    def get(self):
+        now = datetime.datetime.now()
+        self.set_header('Content-type', 'application/octet-stream')
+        self.set_header('Content-Disposition', 'attachment; filename="yummy-bookmarks-%s.html"' % now.strftime("%Y-%m-%d_%H:%M:%S"))
+        user = self.current_user
+        links = Bookmark.latest_in_user(user, offset=0, limit=100000)
+        self.render("export_bookmarks.html", links=links)
+
+
 class SearchHandler(LoginRequiredMixin, BaseHandler):
     def get(self):
         query = self.get_argument('query', '')
@@ -170,6 +182,7 @@ web_handlers = [
     (r"/", RedirectHandler, {'url': '/search'}, 'index'),
     (r"/extract", ExtractHandler, {}, 'extract'),
     (r'/import', ImportBookmarksHandler, {}, 'import'),
+    (r'/export', ExportBookmarksHandler, {}, 'export'),
     (r"/register", RegisterHandler, {}, 'register'),
     (r"/login", LoginHandler, {}, 'login'),
     (r"/logout", LogoutHandler, {}, 'logout'),
