@@ -31,7 +31,6 @@ class LoginHandler(APIHandler):
         mail = self.get_argument('mail').strip()
         password = self.get_argument('password').strip()
 
-        print mail, password
         if not User.verify(mail, password):
             raise APIError(401, 'mail and password doesn\'t match.')
 

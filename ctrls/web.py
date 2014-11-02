@@ -1,4 +1,5 @@
 import re
+import urlparse
 from tornado import gen
 from tornado.web import authenticated, HTTPError, RequestHandler, RedirectHandler
 from models.bookmark import Bookmark
@@ -23,6 +24,7 @@ class BaseHandler(RequestHandler):
         namespace.update({
             'query': '',
             'url_for': self.reverse_url,
+            'dformat': lambda d, f: d.strftime(f),
         })
         return namespace
 
@@ -148,7 +150,12 @@ class SearchHandler(LoginRequiredMixin, BaseHandler):
             search_path=search_path, query=query, offset=offset+limit, limit=limit)
 
         self.render("search.html",
-            query=query, next_page_url=next_page_url, links=links)
+            query=query, next_page_url=next_page_url, links=links,
+            favicon_url=self.favicon_url)
+
+    def favicon_url(self, url):
+        o = urlparse.urlparse(url)
+        return '%s://%s/favicon.ico' % (o.scheme, o.netloc)
 
 
 class AddBookmarkHandler(LoginRequiredMixin, BaseHandler):

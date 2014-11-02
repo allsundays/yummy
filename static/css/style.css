@@ -2,30 +2,42 @@
   padding: 5px 15px 5px 25px;
 }
 
+.container {
+  width: 970px;
+}
+
 p {
   margin:0;
 }
 
 .link {
   font-size:14px;
-  margin:0 0 22px;
+  margin:0 0 23px;
 }
 
 .link .title {
-  /*color:#1a0dab;*/
+  color: #1A0DAB;
   font-size:18px;
+  line-height: 21px;
 }
 
-.link .time {
-  color:green;
+.link .url {
+  color: #00863A;
+  font-size: 13px;
+  line-height: 16px;
 }
 
-.link .full-text {
-  color:#545454;
-
+.link .desc {
+  color: #545454;
+  font-size: 13px;
+  line-height: 18px;
 }
 
 em {
   color:#dd4b39;
   font-style: normal;
+}
+
+.search-results {
+  width: 512px;
 }

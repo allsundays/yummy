@@ -2,18 +2,22 @@
 {% autoescape None %}
 
 {%block main %}
+  <div class="search-results">
     <div class="ias-container">
       {% for item in links %}
         <div class="ias-item link">
-          {% if 'highlight' in item and 'title' in item['highlight'] %}
-            <a href="{{item['_source']['url']}}" class="title" target="_blank">{{item['highlight']['title'][0]}}</a>
-          {% else %}
-            <a href="{{item['_source']['url']}}" class="title" target="_blank">{{item['_source']['title']}}</a>
-          {% end %}
-          <p class="time">{{item['_source']['url']}}, &nbsp;{{item['_source']['timestamp']}}</p>
+          <p class="title">
+            <img src="{{favicon_url(item['_source']['url'])}}" width="16" height="16">
+            {% if 'highlight' in item and 'title' in item['highlight'] %}
+              <a href="{{item['_source']['url']}}" class="title" target="_blank">{{item['highlight']['title'][0]}}</a>
+            {% else %}
+              <a href="{{item['_source']['url']}}" class="title" target="_blank">{{item['_source']['title']}}</a>
+            {% end %}
+          </p>
+          <p class="url">{{item['_source']['url']}}, &nbsp;{{item['_source']['timestamp']}}</p>
 
           {% if 'highlight' in item and 'full_text' in item['highlight'] %}
-            <p class="full-text">
+            <p class="desc">
               {% for hl in item['highlight']['full_text'] %}
                 {{hl}}...
               {% end %}
@@ -25,4 +29,5 @@
         <a class="next" href="{{next_page_url}}">下页</a>
       </div>
     </div>
+  </div>
 {% end %}
