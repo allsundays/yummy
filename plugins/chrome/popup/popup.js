@@ -45,7 +45,7 @@ $('#jsLogin').on('submit', function(e) {
     data: $(this).serialize()
   }).done(function(resp) {
     var sk = resp.data;
-    $.cookie('sk', sk);
+    $.cookie('sk', sk, { expires: 365 });
     alert('ok');
   });
 });
@@ -56,4 +56,4 @@ $('#jsLogin').on('submit', function(e) {
   if (sk) {
     $('#jsLogin').hide();
   }
-})()
+})();
