@@ -1,12 +1,29 @@
-<button id="jsVisit">Visit</button>
-<button id="jsAdd">Add</button>
+<head>
+  <link rel="stylesheet" href="popup.css">
+</head>
 
-<form action="http://yummy.allsunday.in/login" method="POST" id="jsLogin">
-  <input type="mail" name="mail" placeholder="email">
-  <input type="password" name="password" placeholder="password">
-  <input type="submit" value="Login">
-</form>
+<body>
 
-<script src="/lib/jquery-2.1.1.min.js"></script>
-<script src="/lib/jquery.cookie.js"></script>
-<script src="popup.js"></script>
+  <div class="cover">
+  </div>
+
+  <form action="http://yummy.allsunday.in/login" method="POST">
+    <div class="title">LOGIN</div>
+    <div class="inputs">
+      <input type="text" class="email" placeholder="Email">
+      <input type="text" class="password" placeholder="Password">
+    </div>
+    <div class="buttons">
+      <input type="submit" value="LOGIN" class="login-button">
+      <a href="#" class="signup-button">SIGNUP</a>
+    </div>
+  </form>
+
+  <button id="jsVisit">Visit</button>
+  <button id="jsAdd">Add</button>
+
+
+  <script src="/lib/jquery-2.1.1.min.js"></script>
+  <script src="/lib/jquery.cookie.js"></script>
+  <script src="popup.js"></script>
+</body>

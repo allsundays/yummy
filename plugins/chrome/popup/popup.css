@@ -1,0 +1,94 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  width: 320px;
+  font-family: sans-serif;
+}
+
+input:focus {
+  outline: none;
+}
+
+.blue {
+  color: #3B5997;
+}
+
+.gray {
+  color: #393939;
+}
+
+.light-gray {
+  color: #EFEFEF;
+}
+
+.cover {
+  background-color: #3B5997;
+  height: 200px;
+  position: relative;
+  margin-bottom: 20px;
+}
+
+.cover:after {
+  content: "";
+  display: block;
+  position: absolute;
+  left: 50%;
+  margin-left: -15px;
+  bottom: -10px;
+  width: 30px;
+  height: 30px;
+  border-radius: 15px;
+  background-color: #3B5997;
+}
+
+.title {
+  text-align: center;
+  margin: 40px 0 20px;
+  font-size: 24px;
+  color: #5C5A5A;
+}
+
+.inputs {
+  margin: 20px 0;
+}
+
+.inputs input {
+  display: block;
+  width: 100%;
+  border-top: 1px solid #EFEFEF;
+  border-bottom: 1px solid #EFEFEF;
+  border-left: none;
+  border-right: none;
+  padding: 10px 10px 5px;
+  font-size: 16px;
+}
+
+input.email {
+  border-bottom: none;
+}
+
+.buttons {
+  margin: 10px 10px 40px;
+}
+
+.login-button, .signup-button {
+  display: inline-block;
+  border: none;
+  width: 145px;
+  text-align: center;
+  font-size: 24px;
+  padding: 8px 0;
+  color: white;
+  text-decoration: none;
+}
+
+.login-button {
+  background-color: #3B5997;
+}
+
+.signup-button {
+  background-color: #393939;
+}
